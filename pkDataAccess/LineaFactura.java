@@ -3,12 +3,14 @@ public class LineaFactura {
     private int cantidad;
     private double precioUnitario;
     private double subtotalAlimento;
+    private List<Alimento> alimentoDetalle;
 
     public LineaFactura() {
     }
 
     public LineaFactura(int cantidad) {
         this.cantidad = cantidad;
+        this.alimentoDetalle = new ArrayList<>();
     }
 
     public Integer getNumLineaCompra() {

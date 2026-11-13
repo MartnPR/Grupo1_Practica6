@@ -3,6 +3,7 @@ import java.util.Date;
 public class Factura {
     private String idFactura;
     private Date fecha;
+    private List<LineaFactura> lineaFactura;
     private Integer numeroPedido;
     private String metodoPago;
     private double total;
@@ -16,6 +17,7 @@ public class Factura {
         this.fecha = fecha;
         this.numeroPedido = numeroPedido;
         this.metodoPago = metodoPago;
+        this.lineaFactura = new Arraylist<>();
     }
 
     public String getIdFactura() {

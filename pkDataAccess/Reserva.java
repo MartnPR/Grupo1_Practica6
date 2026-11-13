@@ -16,6 +16,7 @@ public class Reserva {
         this.codigoEstudiante = codigoEstudiante;
         this.franjaHoraria = franjaHoraria;
         this.fechaCreacion = new Date();
+        this.listMesa = new ArrayList<>();
     }
 
     public Integer getIdReserva() {
@@ -56,14 +57,6 @@ public class Reserva {
 
     public void setCedulaProfesor(String cedulaProfesor) {
         this.cedulaProfesor = cedulaProfesor;
-    }
-
-    public List<Mesa> getListMesa() {
-        return listMesa;
-    }
-
-    public void setListMesa(List<Mesa> listMesa) {
-        this.listMesa = listMesa;
     }
 
     @Override
