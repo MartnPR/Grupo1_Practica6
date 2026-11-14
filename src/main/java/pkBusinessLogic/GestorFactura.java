@@ -12,7 +12,7 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 
-import pkDataAccess.Factura;
+import pkDataAccess.pkDTO.Factura;
 
 public class GestorFactura {
 

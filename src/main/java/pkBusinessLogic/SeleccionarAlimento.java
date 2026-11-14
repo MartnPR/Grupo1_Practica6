@@ -3,8 +3,8 @@ package pkBusinessLogic;
 import java.util.Date;
 import java.util.List;
 
-import pkDataAccess.AlimentoDAO;
-import pkDataAccess.Alimento;
+import pkDataAccess.pkDTO.Alimento;
+import pkDataAccess.pkDAO.AlimentoDAO;
 
 public class SeleccionarAlimento {
 

@@ -1,7 +1,7 @@
 package pkBusinessLogic;
 
-import pkDataAccess.AlimentoDAO;
-import pkEntity.Compra;
+import pkDataAccess.pkDAO.AlimentoDAO;
+import pkDataAccess.pkDTO.Compra;
 
 public class ComprarAlimento {
 

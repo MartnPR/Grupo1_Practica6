@@ -1,4 +1,4 @@
-package pkDataAccess;
+package pkDataAccess.pkDTO;
 
 public class Mesa {
     private Integer idMesa;
