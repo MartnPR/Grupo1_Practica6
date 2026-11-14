@@ -1,0 +1,19 @@
+# Maven
+target/
+
+# Eclipse
+bin/
+.classpath
+.project
+.settings/
+
+# Archivos generados por Food4All
+facturas/
+tickets/
+
+# VS Code
+.vscode/
+
+# Sistema
+.DS_Store
+Thumbs.db
