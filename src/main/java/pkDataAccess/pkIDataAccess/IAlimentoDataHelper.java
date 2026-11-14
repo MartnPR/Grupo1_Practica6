@@ -1,3 +1,6 @@
+package pkDataAccess.pkIDataAccess;
+
+import pkDataAccess.Alimento;
 import java.util.List;
 
 public interface IAlimentoDataHelper extends IDataHelperSQL<Alimento, Integer> {

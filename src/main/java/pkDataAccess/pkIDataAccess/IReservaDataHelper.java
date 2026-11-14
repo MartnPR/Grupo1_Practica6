@@ -1,3 +1,6 @@
+package pkDataAccess.pkIDataAccess;
+
+import pkDataAccess.Reserva;
 import java.util.Date;
 import java.util.List;
 

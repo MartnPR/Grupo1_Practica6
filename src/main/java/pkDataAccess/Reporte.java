@@ -1,3 +1,5 @@
+package pkDataAccess;
+
 import java.util.Date;
 
 public class Reporte {

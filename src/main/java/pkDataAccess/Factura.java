@@ -1,9 +1,15 @@
+package pkDataAccess;
+
 import java.util.Date;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Factura {
     private String idFactura;
     private Date fecha;
     private List<LineaFactura> lineaFactura;
+    
+
     private Integer numeroPedido;
     private String metodoPago;
     private double total;
@@ -17,7 +23,7 @@ public class Factura {
         this.fecha = fecha;
         this.numeroPedido = numeroPedido;
         this.metodoPago = metodoPago;
-        this.lineaFactura = new Arraylist<>();
+        this.lineaFactura = new ArrayList<>();
     }
 
     public String getIdFactura() {
@@ -79,5 +85,13 @@ public class Factura {
     @Override
     public String toString() {
         return "Factura: Registra los detalles financieros, método de pago y montos totales de un pedido.";
+    }
+
+    public List<LineaFactura> getLineaFactura() {
+        return lineaFactura;
+    }
+
+    public void setLineaFactura(List<LineaFactura> lineaFactura) {
+        this.lineaFactura = lineaFactura;
     }
 }
