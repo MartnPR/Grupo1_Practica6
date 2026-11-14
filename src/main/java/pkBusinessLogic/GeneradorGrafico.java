@@ -1,12 +1,12 @@
 package pkBusinessLogic;
 
-import pkDataAccess.FacturaDAO;
-import pkDataAccess.Factura;
-import pkDataAccess.Reporte;
-
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import pkDataAccess.pkDTO.Factura;
+import pkDataAccess.pkDAO.FacturaDAO;
+import pkDataAccess.pkDTO.Reporte;
 
 public class GeneradorGrafico {
 
@@ -24,7 +24,7 @@ public class GeneradorGrafico {
 
     public Map<String, Integer> generarDiagramaBarraPedidos() {
 
-        List<Factura> facturas = facturaDAO.obtenerTodas();
+        List<Factura> facturas = facturaDAO.leerTodos();
         Map<String, Integer> pedidosPorMetodo =
                 new LinkedHashMap<>();
 
@@ -51,7 +51,7 @@ public class GeneradorGrafico {
 
     public Map<String, Double> generarDiagramaPastel(){
 
-        List<Factura> facturas = facturaDAO.obtenerTodas();
+        List<Factura> facturas = facturaDAO.leerTodos();
         Map<String, Double> ventasPorMetodo =
                 new LinkedHashMap<>();
 
@@ -82,7 +82,7 @@ public class GeneradorGrafico {
 
     public Reporte generarReporte() {
 
-        List<Factura> facturas = facturaDAO.obtenerTodas();
+        List<Factura> facturas = facturaDAO.leerTodos();
 
         int cantidadPedidos = 0;
         double totalVentas = 0;
@@ -97,7 +97,7 @@ public class GeneradorGrafico {
         }
 
         Reporte reporte = new Reporte();
-        reporte.setCantidadPedidos(cantidadPedidos);
+        reporte.setTotalPedidos(cantidadPedidos);
         reporte.setTotalVentas(totalVentas);
 
         return reporte;

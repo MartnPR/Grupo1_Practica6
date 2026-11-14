@@ -1,4 +1,4 @@
-package pkDataAccess;
+package pkDataAccess.pkDTO;
 
 import java.util.Date;
 import java.util.ArrayList;

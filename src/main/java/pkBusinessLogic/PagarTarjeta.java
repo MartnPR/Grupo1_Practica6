@@ -1,12 +1,12 @@
 package pkBusinessLogic;
 
-public class PagarTarjetaOTransferencia {
+public class PagarTarjeta {
 
     private double monto;
     private boolean transferenciaVerificada;
     private boolean tarjetaAprobada;
 
-    public PagarTarjetaOTransferencia() {
+    public PagarTarjeta() {
         this.monto = 0;
         this.transferenciaVerificada = false;
         this.tarjetaAprobada = false;

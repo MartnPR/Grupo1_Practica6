@@ -1,10 +1,10 @@
 package pkBusinessLogic;
 
-import pkDataAccess.FacturaDAO;
-import pkDataAccess.ReporteDAO;
-import pkDataAccess.ReservaDAO;
-import pkDataAccess.Factura;
-import pkDataAccess.Reporte;
+import pkDataAccess.pkDAO.ReservaDAO;
+import pkDataAccess.pkDTO.Factura;
+import pkDataAccess.pkDAO.FacturaDAO;
+import pkDataAccess.pkDTO.Reporte;
+import pkDataAccess.pkDAO.ReporteDAO;
 
 import java.util.List;
 
@@ -44,7 +44,7 @@ public class CalcularEstadistica {
 
     public double calcularTotalVentas() {
 
-        List<Factura> facturas = facturaDAO.obtenerTodas();
+        List<Factura> facturas = facturaDAO.leerTodos();
         double totalVentas = 0;
 
         if (facturas == null) {
@@ -69,13 +69,13 @@ public class CalcularEstadistica {
          * debe sumarse la cantidad de sus detalles.
          */
 
-        List<Factura> facturas = facturaDAO.obtenerTodas();
+        List<Factura> facturas = facturaDAO.leerTodos();
 
         return facturas == null ? 0 : facturas.size();
     }
 
     public int calcularTotalReservasHechas() {
-        return reservaDAO.contarReservas();
+        return reservaDAO.getCount();
     }
 
     public Reporte generarReporte() {
@@ -83,20 +83,14 @@ public class CalcularEstadistica {
         Reporte reporte = new Reporte();
 
         reporte.setTotalVentas(calcularTotalVentas());
-        reporte.setCantidadComidas(
+        reporte.setTotalPedidos(
                 calcularTotalComidasVendidas()
         );
-        reporte.setCantidadReservas(
+        reporte.setTotalReservas(
                 calcularTotalReservasHechas()
         );
 
-        boolean guardado = reporteDAO.guardar(reporte);
-
-        if (!guardado) {
-            throw new IllegalStateException(
-                    "No se pudo guardar el reporte."
-            );
-        }
+        reporteDAO.agregar(reporte);
 
         return reporte;
     }

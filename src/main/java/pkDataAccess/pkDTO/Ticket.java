@@ -1,4 +1,4 @@
-package pkDataAccess;
+package pkDataAccess.pkDTO;
 
 import java.util.Date;
 import com.google.zxing.common.BitMatrix;

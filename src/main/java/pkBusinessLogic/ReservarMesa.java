@@ -1,12 +1,14 @@
 package pkBusinessLogic;
 
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
-import pkDataAccess.MesaDAO;
-import pkDataAccess.ReservaDAO;
-import pkEntity.Estudiante;
-import pkDataAccess.Mesa;
-import pkDataAccess.Reserva;
+import pkDataAccess.pkDTO.Mesa;
+import pkDataAccess.pkDAO.MesaDAO;
+import pkDataAccess.pkDTO.Reserva;
+import pkDataAccess.pkDAO.ReservaDAO;
+import pkDataAccess.pkDTO.UsuarioPoliComedor;
 
 public class ReservarMesa {
 
@@ -35,10 +37,10 @@ public class ReservarMesa {
 
     public boolean crearReserva(
             Mesa mesa,
-            Estudiante estudiante,
+            UsuarioPoliComedor usuario,
             String franjaHoraria) {
 
-        if (mesa == null || estudiante == null) {
+        if (mesa == null || usuario == null) {
             return false;
         }
 
@@ -52,16 +54,14 @@ public class ReservarMesa {
             return false;
         }
 
-        /*
-         * Aquí:
-         *
-         * Reserva reserva = new Reserva();
-         * reserva.setMesa(mesa);
-         * reserva.setEstudiante(estudiante);
-         * reserva.setFranjaHoraria(franjaHoraria);
-         *
-         * return reservaDAO.guardar(reserva);
-         */
+        Reserva reserva = new Reserva();
+        reserva.setFechaCreacion(new Date());
+        List<Mesa> listMesa = new ArrayList<>();
+        listMesa.add(mesa);
+        reserva.setListMesa(listMesa);
+        reserva.setUsuario(usuario);
+        reserva.setFranjaHoraria(franjaHoraria);
+        reservaDAO.agregar(reserva);
 
         return true;
     }
@@ -74,12 +74,8 @@ public class ReservarMesa {
             return false;
         }
 
-        /*
-         * reserva.setCancelada(cancelada);
-         * return reservaDAO.actualizar(reserva);
-         */
-
-        return true;
+        reserva.setCancelada(cancelada);
+        return reservaDAO.actualizar(reserva);
     }
 
     public boolean consultarDisponibilidadMesa(
@@ -97,18 +93,12 @@ public class ReservarMesa {
     }
 
     public List<Reserva> consultarHistorialReservas(
-            Estudiante estudiante) {
+            UsuarioPoliComedor usuario) {
 
-        if (estudiante == null) {
+        if (usuario == null) {
             return List.of();
         }
 
-        /*
-         * return reservaDAO.buscarPorEstudiante(
-         *     estudiante.getCodigoUnico()
-         * );
-         */
-
-        return List.of();
+        return reservaDAO.buscarPorEstudiante(usuario.getApellido());
     }
 }

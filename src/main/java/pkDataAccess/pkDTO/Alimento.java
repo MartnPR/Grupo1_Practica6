@@ -1,4 +1,4 @@
-package pkDataAccess;
+package pkDataAccess.pkDTO;
 
 public class Alimento {
     private Integer idAlimento;
