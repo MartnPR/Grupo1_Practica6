@@ -1,5 +1,8 @@
+package pkDataAccess;
+
 import java.util.Date;
 import java.util.List;
+import java.util.ArrayList;
 
 public class Reserva {
     private Integer idReserva;
@@ -9,6 +12,7 @@ public class Reserva {
     private String cedulaProfesor;
     private List<Mesa> listMesa;
 
+    
     public Reserva() {
     }
 
@@ -58,6 +62,15 @@ public class Reserva {
     public void setCedulaProfesor(String cedulaProfesor) {
         this.cedulaProfesor = cedulaProfesor;
     }
+
+    public List<Mesa> getListMesa() {
+        return listMesa;
+    }
+
+    public void setListMesa(List<Mesa> listMesa) {
+        this.listMesa = listMesa;
+    }
+
 
     @Override
     public String toString() {

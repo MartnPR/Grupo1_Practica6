@@ -1,3 +1,5 @@
+package pkDataAccess;
+
 public class Alimento {
     private Integer idAlimento;
     private String nombre;

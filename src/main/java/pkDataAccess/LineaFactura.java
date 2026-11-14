@@ -1,3 +1,8 @@
+package pkDataAccess;
+
+import java.util.ArrayList;
+import java.util.List;
+
 public class LineaFactura {
     private Integer numLineaCompra;
     private int cantidad;
@@ -5,6 +10,7 @@ public class LineaFactura {
     private double subtotalAlimento;
     private List<Alimento> alimentoDetalle;
 
+    
     public LineaFactura() {
     }
 
@@ -43,6 +49,14 @@ public class LineaFactura {
 
     public void setSubtotalAlimento(double subtotalAlimento) {
         this.subtotalAlimento = subtotalAlimento;
+    }
+
+    public List<Alimento> getAlimentoDetalle() {
+        return alimentoDetalle;
+    }
+
+    public void setAlimentoDetalle(List<Alimento> alimentoDetalle) {
+        this.alimentoDetalle = alimentoDetalle;
     }
 
     @Override

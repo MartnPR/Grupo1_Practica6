@@ -1,3 +1,5 @@
+package pkDataAccess.pkIDataAccess;
+
 import java.util.List;
 
 public interface IDataHelperSQL <T, K> {

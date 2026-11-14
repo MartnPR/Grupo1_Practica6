@@ -1,3 +1,6 @@
+package pkDataAccess.pkIDataAccess;
+
+import pkDataAccess.Ticket;
 import java.util.List;
 
 public interface ITicketDataHelper extends IDataHelperSQL<Ticket, Integer> {

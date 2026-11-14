@@ -1,3 +1,5 @@
+package pkDataAccess;
+
 public class Mesa {
     private Integer idMesa;
     private boolean reservada;
