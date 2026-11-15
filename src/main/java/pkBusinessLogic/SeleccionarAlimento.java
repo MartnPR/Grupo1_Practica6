@@ -22,22 +22,20 @@ public class SeleccionarAlimento {
         this.alimentoDAO = alimentoDAO;
     }
 
-    public int consultarStockAlimento(
+    public Alimento consultarStockAlimento(
             Alimento alimento) {
 
         if (alimento == null) {
-            return 0;
+            return null;
         }
 
-        /*
-         * Ajustar cuando haya AlimentoDAO:
-         *
-         * return alimentoDAO.consultarStock(
-         *     alimento.getIdAlimento()
-         * );
-         */
-
-        return 0;
+        
+         
+         
+         return alimentoDAO.buscarPorId(
+              alimento.getIdAlimento()
+         );
+        
     }
 
     public List<Alimento> listarAlimentosPorTipo(
@@ -56,24 +54,18 @@ public class SeleccionarAlimento {
 
     public List<Alimento> listarAlimentosDisponibles() {
 
-        /*
-         * return alimentoDAO.buscarDisponibles();
-         */
-
-        return List.of();
+        
+         return alimentoDAO.leerTodos();
     }
 
-    public List<Alimento> listarAlimentosMenuDia(
-            Date fecha) {
+    public List<Alimento> listarAlimentosTipo(String tipo) {
 
-        if (fecha == null) {
+        if (tipo == null || tipo.isBlank()) {
             return List.of();
         }
 
-        /*
-         * return alimentoDAO.buscarMenuPorFecha(fecha);
-         */
-
-        return List.of();
+        
+        return alimentoDAO.buscarPorTipo(tipo);
+        
     }
 }

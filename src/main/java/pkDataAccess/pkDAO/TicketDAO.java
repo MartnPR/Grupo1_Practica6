@@ -20,11 +20,7 @@ public class TicketDAO implements ITicketDataHelper {
      * Crea un DAO usando la configuración predeterminada de Food4All.
      */
     public TicketDAO() {
-        this(new ConnectionDB(
-                "jdbc:oracle:thin:@localhost:1521:xe",
-                "oracle.jdbc.OracleDriver",
-                "food4all",
-                "food4all"));
+        this(ConnectionDB.fromEnvironment());
     }
 
     /**
