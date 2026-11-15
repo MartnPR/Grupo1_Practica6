@@ -48,6 +48,7 @@ public final class PantallaComedor extends PantallaBase {
         }
     }
 
+
     public List<Alimento> solicitarBusqueda() {
         String criterio = busqueda.obtenerCriterioBusqueda().toLowerCase(Locale.ROOT);
         return controlAlimentos.listarAlimentosDisponibles().stream()

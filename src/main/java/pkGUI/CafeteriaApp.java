@@ -6,7 +6,6 @@ import java.awt.GraphicsEnvironment;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import pkBusinessLogic.AutenticarUsuario;
