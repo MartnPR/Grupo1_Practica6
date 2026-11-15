@@ -1,7 +1,6 @@
 # Maven
 target/
-.env
-.env.*
+
 !.env.example
 
 # Eclipse
