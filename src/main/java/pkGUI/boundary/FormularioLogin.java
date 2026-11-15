@@ -3,29 +3,22 @@ package pkGUI.boundary;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.util.Map;
-import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
 public final class FormularioLogin extends JPanel {
-    private String metodoAutenticacion;
-    private Map<String, String> parametros = Map.of();
-    private final JComboBox<String> metodo = new JComboBox<>(
-            new String[] {"Personal", "Estudiante", "Profesor"});
-    private final JTextField usuario = new JTextField(18);
-    private final JPasswordField contrasena = new JPasswordField(18);
+    private final JTextField credencial = new JTextField(18);
+    private final JPasswordField password = new JPasswordField(18);
 
     public FormularioLogin() {
         super(new GridBagLayout());
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.insets = new Insets(5, 5, 5, 5);
         constraints.anchor = GridBagConstraints.WEST;
-        addField(constraints, 0, "Tipo de usuario:", metodo);
-        addField(constraints, 1, "Usuario o código:", usuario);
-        addField(constraints, 2, "Contraseña:", contrasena);
+        addField(constraints, 0, "Credencial:", credencial);
+        addField(constraints, 1, "Password:", password);
     }
 
     private void addField(GridBagConstraints constraints, int row, String label, java.awt.Component field) {
@@ -37,28 +30,21 @@ public final class FormularioLogin extends JPanel {
     }
 
     public boolean validarCampos() {
-        metodoAutenticacion = (String) metodo.getSelectedItem();
-        parametros = Map.of(
-                "usuario", usuario.getText().trim(),
-                "contrasena", new String(contrasena.getPassword()));
-        return metodoAutenticacion != null
-                && parametros.values().stream().allMatch(value -> !value.isBlank());
+        return !obtenerCredencial().isBlank()
+                && password.getPassword().length > 0;
     }
 
-    public String obtenerMetodoAutenticacion() {
-        return metodoAutenticacion;
+    public String obtenerCredencial() {
+        return credencial.getText().trim();
     }
 
-    public Map<String, String> obtenerParametros() {
-        return parametros;
+    public String obtenerPassword() {
+        return new String(password.getPassword());
     }
 
-    public void configurar(String metodoAutenticacion, Map<String, String> parametros) {
-        this.metodoAutenticacion = metodoAutenticacion;
-        this.parametros = Map.copyOf(parametros);
-        metodo.setSelectedItem(metodoAutenticacion);
-        usuario.setText(parametros.getOrDefault("usuario", ""));
-        contrasena.setText(parametros.getOrDefault("contrasena", ""));
+    public void limpiar() {
+        credencial.setText("");
+        password.setText("");
     }
 
     public void mostrar() {
