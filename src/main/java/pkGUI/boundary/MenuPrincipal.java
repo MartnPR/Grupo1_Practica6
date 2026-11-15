@@ -15,18 +15,15 @@ public final class MenuPrincipal extends PantallaBase {
         this.selectorVentanas = Objects.requireNonNull(selectorVentanas);
         selectorVentanas.setNavegador(this::navegar);
         JPanel opciones = new JPanel(new GridLayout(0, 2, 10, 10));
-        agregarOpcion(opciones, "Comedor y alimentos", "comedor");
-        agregarOpcion(opciones, "Mesas disponibles", "mesas");
-        agregarOpcion(opciones, "Pago", "pago");
+        agregarOpcion(opciones, "Catálogo de alimentos", "comedor");
+        agregarOpcion(opciones, "Reservar mesa", "mesas");
+        agregarOpcion(opciones, "Comprar alimentos", "pago");
         agregarOpcion(opciones, "Ticket", "ticket");
-        agregarOpcion(opciones, "Caja", "cajero");
-        agregarOpcion(opciones, "Estadísticas", "estadisticas");
-        agregarOpcion(opciones, "Iniciar sesión", "login");
         JButton salir = new JButton("Salir");
         salir.addActionListener(event -> navegar("salir"));
         opciones.add(salir);
         JPanel centro = new JPanel(new BorderLayout(8, 12));
-        centro.add(new JLabel("Selecciona una pantalla. Los datos locales se conservan entre sesiones."),
+        centro.add(new JLabel("Selecciona una operación de cafetería."),
                 BorderLayout.NORTH);
         centro.add(opciones, BorderLayout.CENTER);
         centro.add(selectorVentanas, BorderLayout.SOUTH);

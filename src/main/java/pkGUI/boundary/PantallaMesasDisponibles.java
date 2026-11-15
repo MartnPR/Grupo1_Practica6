@@ -1,6 +1,7 @@
 package pkGUI.boundary;
 
 import pkBusinessLogic.ReservarMesa;
+import pkDataAccess.pkDAO.MesaDAO;
 import pkDataAccess.pkDTO.Mesa;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -16,16 +17,21 @@ import javax.swing.JScrollPane;
 public final class PantallaMesasDisponibles extends PantallaBase {
     private List<Mesa> mesas;
     private final ReservarMesa controlMesas;
+    private final MesaDAO mesaDAO;
     private final DefaultListModel<Mesa> modelo = new DefaultListModel<>();
     private final JList<Mesa> lista = new JList<>(modelo);
 
-    public PantallaMesasDisponibles(List<Mesa> mesas, ReservarMesa controlMesas) {
+    public PantallaMesasDisponibles(
+            List<Mesa> mesas,
+            ReservarMesa controlMesas,
+            MesaDAO mesaDAO) {
         super("Mesas disponibles");
         this.mesas = List.copyOf(mesas);
         this.controlMesas = Objects.requireNonNull(controlMesas);
+        this.mesaDAO = Objects.requireNonNull(mesaDAO);
         lista.setCellRenderer((list, mesa, index, isSelected, cellHasFocus) -> {
             JLabel item = new JLabel("Mesa %d — %s".formatted(
-                    mesa.getIdMesa(), mesa.isReservada() ? "reservada (muestra)" : "libre (muestra)"));
+                    mesa.getIdMesa(), mesa.isReservada() ? "reservada" : "disponible"));
             if (isSelected) {
                 item.setOpaque(true);
                 item.setBackground(list.getSelectionBackground());
@@ -35,8 +41,8 @@ public final class PantallaMesasDisponibles extends PantallaBase {
         });
         JButton consultar = new JButton("Consultar disponibilidad");
         consultar.addActionListener(event -> consultarDisponibilidad());
-        JButton actualizar = new JButton("Mostrar mesas de demostración");
-        actualizar.addActionListener(event -> MesasDisponibles());
+        JButton actualizar = new JButton("Cargar mesas");
+        actualizar.addActionListener(event -> cargarMesas());
         JButton volver = new JButton("Volver al menú");
         volver.addActionListener(event -> navegar("menu"));
         JPanel acciones = new JPanel(new FlowLayout(FlowLayout.LEADING));
@@ -44,7 +50,7 @@ public final class PantallaMesasDisponibles extends PantallaBase {
         acciones.add(actualizar);
         acciones.add(volver);
         contenido().add(new JLabel(
-                "Estado de mesas cargado desde el almacenamiento local."),
+                "Carga las mesas para consultar su disponibilidad."),
                 BorderLayout.NORTH);
         contenido().add(new JScrollPane(lista), BorderLayout.CENTER);
         contenido().add(acciones, BorderLayout.SOUTH);
@@ -70,15 +76,23 @@ public final class PantallaMesasDisponibles extends PantallaBase {
     }
 
     public void MesasDisponibles() {
-        actualizarMesas(mesas);
+        cargarMesas();
         setVisible(true);
-        mostrarEstado("%d mesas de demostración mostradas.".formatted(mesas.size()));
+    }
+
+    private void cargarMesas() {
+        try {
+            actualizarMesas(mesaDAO.leerTodos());
+            mostrarEstado("%d mesas cargadas.".formatted(mesas.size()));
+        } catch (RuntimeException error) {
+            mostrarEstado(mensajeError(error));
+        }
     }
 
     private void consultarDisponibilidad() {
         Mesa seleccionada = seleccionMesa();
         if (seleccionada == null) {
-            mostrarEstado("Selecciona una mesa de demostración.");
+            mostrarEstado("Selecciona una mesa.");
             return;
         }
         try {

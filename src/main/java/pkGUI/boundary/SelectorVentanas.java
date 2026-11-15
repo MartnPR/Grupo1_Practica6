@@ -12,7 +12,7 @@ public final class SelectorVentanas extends JPanel {
     private String ventanaActual;
     private Consumer<String> navegador = ignored -> { };
     private final JComboBox<String> destinos = new JComboBox<>(new String[] {
-        "comedor", "mesas", "pago", "ticket", "cajero", "estadisticas", "login"
+        "comedor", "mesas", "pago", "ticket"
     });
 
     public SelectorVentanas(String ventanaActual) {

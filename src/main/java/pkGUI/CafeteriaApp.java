@@ -4,19 +4,26 @@ import java.awt.CardLayout;
 import java.awt.Dimension;
 import java.awt.GraphicsEnvironment;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import pkBusinessLogic.AutenticarUsuario;
+import pkBusinessLogic.ComprarAlimento;
 import pkBusinessLogic.GestorTicket;
+import pkBusinessLogic.ReservarMesa;
 import pkBusinessLogic.SeleccionarAlimento;
 import pkDataAccess.pkDAO.AlimentoDAO;
+import pkDataAccess.pkDAO.MesaDAO;
+import pkDataAccess.pkDAO.ReservaDAO;
 import pkDataAccess.pkDTO.UsuarioPoliComedor;
 import pkGUI.boundary.Login;
 import pkGUI.boundary.MenuPrincipal;
 import pkGUI.boundary.PantallaBase;
 import pkGUI.boundary.PantallaComedor;
+import pkGUI.boundary.PantallaMesasDisponibles;
+import pkGUI.boundary.PantallaPago;
 import pkGUI.boundary.PantallaTicket;
 import pkGUI.boundary.SelectorVentanas;
 
@@ -46,23 +53,37 @@ public final class CafeteriaApp {
      */
     private void iniciar() {
         AlimentoDAO alimentoDAO = new AlimentoDAO();
+        AutenticarUsuario autenticacion = new AutenticarUsuario();
+        MesaDAO mesaDAO = new MesaDAO();
         Map<String, PantallaBase> pantallas = new LinkedHashMap<>();
         pantallas.put("menu", new MenuPrincipal(new SelectorVentanas("comedor")));
         pantallas.put("comedor",
                 new PantallaComedor(new SeleccionarAlimento(alimentoDAO)));
+        pantallas.put("pago", new PantallaPago(new ComprarAlimento(alimentoDAO)));
+        pantallas.put("mesas", new PantallaMesasDisponibles(
+                List.of(),
+                new ReservarMesa(new ReservaDAO(), mesaDAO),
+                mesaDAO));
         pantallas.put("ticket", new PantallaTicket(new GestorTicket()));
         pantallas.put("login", new Login(
-                new AutenticarUsuario(), new UsuarioPoliComedor()));
+                autenticacion, new UsuarioPoliComedor()));
 
         JFrame ventana = new JFrame("Food4All");
         CardLayout tarjetas = new CardLayout();
         JPanel contenedor = new JPanel(tarjetas);
+        boolean[] usuarioAutenticado = {false};
 
         for (Map.Entry<String, PantallaBase> entry : pantallas.entrySet()) {
             contenedor.add(entry.getValue(), entry.getKey());
             entry.getValue().setNavegador(destino -> {
                 if ("salir".equals(destino)) {
                     ventana.dispose();
+                } else if ("ingreso".equals(destino)) {
+                    usuarioAutenticado[0] = true;
+                    tarjetas.show(contenedor, "menu");
+                } else if (!usuarioAutenticado[0]
+                        && !"login".equals(destino)) {
+                    tarjetas.show(contenedor, "login");
                 } else if (pantallas.containsKey(destino)) {
                     tarjetas.show(contenedor, destino);
                 }
@@ -74,7 +95,7 @@ public final class CafeteriaApp {
         ventana.setMinimumSize(new Dimension(760, 520));
         ventana.setSize(980, 700);
         ventana.setLocationByPlatform(true);
+        tarjetas.show(contenedor, "login");
         ventana.setVisible(true);
-        tarjetas.show(contenedor, "menu");
     }
 }
