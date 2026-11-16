@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import pkDataAccess.pkDTO.Mesa;
 import pkDataAccess.pkDAO.MesaDAO;
-import pkDataAccess.pkDTO.Reserva;
 import pkDataAccess.pkDAO.ReservaDAO;
+import pkDataAccess.pkDTO.Mesa;
+import pkDataAccess.pkDTO.Reserva;
 import pkDataAccess.pkDTO.UsuarioPoliComedor;
 
 public class ReservarMesa {
@@ -55,50 +55,123 @@ public class ReservarMesa {
         }
 
         Reserva reserva = new Reserva();
+
         reserva.setFechaCreacion(new Date());
-        List<Mesa> listMesa = new ArrayList<>();
-        listMesa.add(mesa);
-        reserva.setListMesa(listMesa);
-        reserva.setUsuario(usuario);
         reserva.setFranjaHoraria(franjaHoraria);
+
+        /*
+         * Temporalmente se mantiene List<Mesa>
+         * porque el DTO Reserva actual todavía
+         * utiliza esta estructura.
+         *
+         * El equipo acordó cambiar posteriormente
+         * esta relación para que cada Reserva tenga
+         * una sola Mesa.
+         */
+        List<Mesa> mesas = new ArrayList<>();
+        mesas.add(mesa);
+
+        reserva.setListMesa(mesas);
+        reserva.setUsuario(usuario);
+
+        /*
+         * ReservaDAO todavía no persiste la relación
+         * Reserva-Mesa. Esto queda pendiente de la
+         * modificación de Data Access.
+         */
         reservaDAO.agregar(reserva);
 
-        return true;
-    }
-
-    public boolean modificarReserva(
-            Reserva reserva,
-            boolean cancelada) {
-
-        if (reserva == null) {
-            return false;
-        }
-
-        reserva.setCancelada(cancelada);
-        return reservaDAO.actualizar(reserva);
+        /*
+         * La mesa sí puede actualizarse actualmente
+         * mediante MesaDAO.
+         */
+        return marcarMesaReservada(mesa, true);
     }
 
     public boolean consultarDisponibilidadMesa(
             Mesa mesa) {
 
-        if (mesa == null) {
+        if (mesa == null
+                || mesa.getIdMesa() == null) {
+
             return false;
         }
 
-        /*
-         * Aquí consultaríamos MesaDAO
-         */
+        Mesa mesaRegistrada =
+                mesaDAO.buscarPorId(
+                        mesa.getIdMesa()
+                );
 
-        return true;
+        if (mesaRegistrada == null) {
+            return false;
+        }
+
+        return !mesaRegistrada.isReservada();
+    }
+
+    private boolean marcarMesaReservada(
+            Mesa mesa,
+            boolean reservada) {
+
+        if (mesa == null
+                || mesa.getIdMesa() == null) {
+
+            return false;
+        }
+
+        Mesa mesaRegistrada =
+                mesaDAO.buscarPorId(
+                        mesa.getIdMesa()
+                );
+
+        if (mesaRegistrada == null) {
+            return false;
+        }
+
+        mesaRegistrada.setReservada(reservada);
+
+        return mesaDAO.actualizar(
+                mesaRegistrada
+        );
+    }
+
+    public boolean cancelarReserva(
+            Reserva reserva,
+            Mesa mesa) {
+
+        if (reserva == null
+                || reserva.getIdReserva() == null
+                || mesa == null) {
+
+            return false;
+        }
+
+        Reserva eliminada =
+                reservaDAO.eliminar(
+                        reserva.getIdReserva()
+                );
+
+        if (eliminada == null) {
+            return false;
+        }
+
+        return marcarMesaReservada(
+                mesa,
+                false
+        );
     }
 
     public List<Reserva> consultarHistorialReservas(
-            UsuarioPoliComedor usuario) {
+            String codigoEstudiante) {
 
-        if (usuario == null) {
+        if (codigoEstudiante == null
+                || codigoEstudiante.isBlank()) {
+
             return List.of();
         }
 
-        return reservaDAO.buscarPorEstudiante(usuario.getApellido());
+        return reservaDAO.buscarPorEstudiante(
+                codigoEstudiante
+        );
     }
 }
