@@ -11,7 +11,7 @@ import javax.swing.JTextField;
 public final class FormularioLogin extends JPanel {
     private final JTextField credencial = new JTextField(18);
     private final JPasswordField password = new JPasswordField(18);
-
+    //Constructor
     public FormularioLogin() {
         super(new GridBagLayout());
         GridBagConstraints constraints = new GridBagConstraints();
