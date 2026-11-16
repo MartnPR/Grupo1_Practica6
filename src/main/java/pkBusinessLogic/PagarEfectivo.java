@@ -6,6 +6,7 @@ public class PagarEfectivo {
     private double efectivoRecibido;
 
     public PagarEfectivo() {
+
         this.totalPagar = 0;
         this.efectivoRecibido = 0;
     }
@@ -14,17 +15,28 @@ public class PagarEfectivo {
             double totalPagar,
             double efectivoRecibido) {
 
+        if (totalPagar <= 0) {
+
+            throw new IllegalArgumentException(
+                    "El total debe ser mayor que cero."
+            );
+        }
+
+        if (efectivoRecibido < 0) {
+
+            throw new IllegalArgumentException(
+                    "El efectivo recibido no puede ser negativo."
+            );
+        }
+
         this.totalPagar = totalPagar;
         this.efectivoRecibido = efectivoRecibido;
     }
 
     public boolean pagarConEfectivo() {
 
-        if (totalPagar <= 0) {
-            return false;
-        }
-
-        return efectivoRecibido >= totalPagar;
+        return totalPagar > 0
+                && efectivoRecibido >= totalPagar;
     }
 
     private double calcularVuelto() {
@@ -39,12 +51,14 @@ public class PagarEfectivo {
     public String generarRecibo() {
 
         if (!pagarConEfectivo()) {
-            return "Pago en efectivo no realizado.";
+
+            return "Pago en efectivo pendiente "
+                    + "o dinero insuficiente.";
         }
 
-        return "Pago realizado correctamente."
+        return "Pago aprobado"
                 + "\nTotal: $" + totalPagar
-                + "\nEfectivo recibido: $" + efectivoRecibido
+                + "\nEfectivo: $" + efectivoRecibido
                 + "\nVuelto: $" + calcularVuelto();
     }
 }
