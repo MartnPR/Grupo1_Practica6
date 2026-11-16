@@ -12,7 +12,7 @@ public final class FormularioBusqueda extends JPanel {
     private String campoTexto = "";
     private final JTextField entrada = new JTextField(22);
     private Runnable buscar = () -> { };
-
+    //Constructor
     public FormularioBusqueda() {
         super(new BorderLayout(8, 0));
         JPanel controles = new JPanel(new FlowLayout(FlowLayout.LEADING, 8, 0));
