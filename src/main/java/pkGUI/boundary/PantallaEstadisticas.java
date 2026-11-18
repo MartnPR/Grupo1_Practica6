@@ -2,7 +2,6 @@ package pkGUI.boundary;
 
 import pkBusinessLogic.CalcularEstadistica;
 import pkBusinessLogic.GeneradorGrafico;
-import pkDataAccess.pkDTO.Mesa;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.util.List;
@@ -15,7 +14,7 @@ import javax.swing.JPanel;
 public final class PantallaEstadisticas extends PantallaBase {
     private final CalcularEstadistica calculador;
     private final GeneradorGrafico graficos;
-    private final JComboBox<Mesa> selectorMesa;
+    private final JComboBox<String> selectorMesa;
     private final JLabel contextoMesa = new JLabel();
 
     public PantallaEstadisticas(CalcularEstadistica calculador, GeneradorGrafico graficos) {
@@ -25,37 +24,26 @@ public final class PantallaEstadisticas extends PantallaBase {
     public PantallaEstadisticas(
             CalcularEstadistica calculador,
             GeneradorGrafico graficos,
-            List<Mesa> mesas) {
+            List<String> mesas) {
         super("Estadísticas");
         this.calculador = Objects.requireNonNull(calculador);
         this.graficos = Objects.requireNonNull(graficos);
-        selectorMesa = new JComboBox<>(List.copyOf(mesas).toArray(Mesa[]::new));
-        selectorMesa.setRenderer((list, mesa, index, isSelected, cellHasFocus) -> {
-            String texto = mesa == null ? "Sin mesas disponibles"
-                    : "Mesa %d — %s".formatted(
-                            mesa.getIdMesa(), mesa.isReservada() ? "reservada" : "disponible");
-            JLabel item = new JLabel(texto);
-            if (isSelected) {
-                item.setOpaque(true);
-                item.setBackground(list.getSelectionBackground());
-                item.setForeground(list.getSelectionForeground());
-            }
-            return item;
-        });
+        selectorMesa = new JComboBox<>(List.copyOf(mesas).toArray(String[]::new));
         selectorMesa.addActionListener(event -> actualizarContextoMesa());
         JPanel selector = new JPanel(new FlowLayout(FlowLayout.LEADING));
         selector.add(new JLabel("Mesa para el contexto de estadísticas:"));
         selector.add(selectorMesa);
         JPanel acciones = new JPanel(new FlowLayout(FlowLayout.LEADING));
         JButton reporte = new JButton("Generar reporte");
-        reporte.addActionListener(event -> ejecutarDemo(() -> calculador.generarReporte().toString()));
+        reporte.addActionListener(event -> ejecutarOperacion(
+                () -> calculador.generarReporte().toString()));
         JButton pedidos = new JButton("Gráfico de pedidos");
-        pedidos.addActionListener(event -> ejecutarDemo(() -> {
+        pedidos.addActionListener(event -> ejecutarOperacion(() -> {
             graficos.generarDiagramaBarraPedidos();
             return "Gráfico de pedidos generado.";
         }));
         JButton reservas = new JButton("Gráfico de reservas");
-        reservas.addActionListener(event -> ejecutarDemo(() -> {
+        reservas.addActionListener(event -> ejecutarOperacion(() -> {
             graficos.generarDiagramaPastel();
             return "Gráfico de reservas generado.";
         }));
@@ -77,7 +65,7 @@ public final class PantallaEstadisticas extends PantallaBase {
         actualizarContextoMesa();
     }
 
-    private void ejecutarDemo(java.util.function.Supplier<String> operacion) {
+    private void ejecutarOperacion(java.util.function.Supplier<String> operacion) {
         try {
             mostrarEstado(operacion.get());
         } catch (RuntimeException error) {
@@ -89,16 +77,15 @@ public final class PantallaEstadisticas extends PantallaBase {
         navegar("mesas");
     }
 
-    public Mesa seleccionMesa() {
-        return (Mesa) selectorMesa.getSelectedItem();
+    public String seleccionMesa() {
+        return (String) selectorMesa.getSelectedItem();
     }
 
     private void actualizarContextoMesa() {
-        Mesa mesa = seleccionMesa();
+        String mesa = seleccionMesa();
         contextoMesa.setText(mesa == null
                 ? "No hay mesas para seleccionar."
-                : "Contexto seleccionado: Mesa %d (los servicios disponibles no filtran por Mesa)."
-                        .formatted(mesa.getIdMesa()));
+                : "Contexto seleccionado: %s (las estadísticas son globales).".formatted(mesa));
     }
 
     public CalcularEstadistica getCalculador() {

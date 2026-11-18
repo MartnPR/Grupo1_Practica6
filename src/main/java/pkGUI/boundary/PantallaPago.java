@@ -1,6 +1,7 @@
 package pkGUI.boundary;
 
-import pkBusinessLogic.ComprarAlimento;
+import pkBusinessLogic.SeleccionarAlimento;
+import pkBusinessLogic.PagarTarjeta;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.util.Objects;
@@ -10,45 +11,63 @@ import javax.swing.JPanel;
 
 public final class PantallaPago extends PantallaBase {
     private final FormularioPago formulario;
-    private final ComprarAlimento control;
+    private final SeleccionarAlimento controlAlimentos;
+    private final PagarTarjeta pagoTarjeta;
 
-    public PantallaPago(ComprarAlimento control) {
+    public PantallaPago(
+            SeleccionarAlimento controlAlimentos,
+            PagarTarjeta pagoTarjeta) {
         super("Pago");
         this.formulario = new FormularioPago("Efectivo", "");
-        this.control = Objects.requireNonNull(control);
+        this.controlAlimentos = Objects.requireNonNull(controlAlimentos);
+        this.pagoTarjeta = Objects.requireNonNull(pagoTarjeta);
         JButton procesar = new JButton("Procesar compra");
         procesar.addActionListener(event -> procesarCompra());
-        JButton mostrarDatos = new JButton("Mostrar método seleccionado");
-        mostrarDatos.addActionListener(event -> mostrarDatosPago());
-        JButton ticket = new JButton("Abrir pantalla de ticket");
-        ticket.addActionListener(event -> navegar("ticket"));
         JPanel acciones = new JPanel(new FlowLayout(FlowLayout.LEADING));
         acciones.add(procesar);
-        acciones.add(mostrarDatos);
-        acciones.add(ticket);
         contenido().add(new JLabel(
-                "El pago está deshabilitado hasta conectar un proveedor; no se realiza ningún cargo."),
+                "La pasarela PayPhone aún no está integrada; no se realizará ningún cargo."),
                 BorderLayout.NORTH);
         contenido().add(formulario, BorderLayout.CENTER);
         contenido().add(acciones, BorderLayout.SOUTH);
     }
 
-    private void procesarCompra() {
+    public void procesarCompra() {
+        if (!controlAlimentos.hayAlimentosSeleccionados()) {
+            mostrarEstado("Selecciona al menos un alimento antes de continuar.");
+            return;
+        }
+
         String metodo = formulario.obtenerOpcionPago();
+        if (!"Tarjeta".equals(metodo)) {
+            mostrarEstado("El método %s aún no está conectado al proceso de compra."
+                    .formatted(metodo));
+            return;
+        }
+
         try {
-            mostrarEstado(control.verCarritoCompra(control.iniciarCompra()));
+            pagoTarjeta.establecerMonto(controlAlimentos.mostrarTotal());
+            boolean aprobado = pagoTarjeta.solicitarPago(
+                    formulario.obtenerDatosPago());
+            mostrarEstado(aprobado
+                    ? "Pago aprobado."
+                    : "El pago no fue aprobado. No se completó la compra.");
         } catch (RuntimeException error) {
-            mostrarEstado("%s Método seleccionado: %s."
-                    .formatted(mensajeError(error), metodo));
+            mostrarEstado("%s No se completó la compra."
+                    .formatted(mensajeError(error)));
         }
     }
 
     public void mostrarDatosPago() {
-        mostrarEstado("Método seleccionado: %s. Referencia solo de demostración; no se almacena."
+        mostrarEstado("Método seleccionado: %s. No se realizó ningún cobro."
                 .formatted(formulario.obtenerOpcionPago()));
     }
 
-    public ComprarAlimento getControl() {
-        return control;
+    public SeleccionarAlimento getControlAlimentos() {
+        return controlAlimentos;
+    }
+
+    public PagarTarjeta getPagoTarjeta() {
+        return pagoTarjeta;
     }
 }

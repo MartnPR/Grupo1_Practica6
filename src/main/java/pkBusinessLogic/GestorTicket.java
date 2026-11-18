@@ -26,7 +26,49 @@ public class GestorTicket {
     private static final AtomicInteger SECUENCIA =
             new AtomicInteger(1);
 
+    private Factura facturaPendiente;
+    private Ticket ticketActual;
+    private Path rutaQrActual;
+
     public GestorTicket() {
+    }
+
+    public void prepararFactura(Factura factura) {
+        if (factura == null) {
+            throw new IllegalArgumentException(
+                    "No se puede preparar un ticket sin factura.");
+        }
+        facturaPendiente = factura;
+    }
+
+    public String generarTicketParaVista() {
+        if (facturaPendiente == null) {
+            throw new IllegalStateException(
+                    "No hay una compra confirmada para generar un ticket.");
+        }
+
+        Ticket ticket = generarTicket(facturaPendiente);
+        facturaPendiente = null;
+        return resumenTicket(ticket);
+    }
+
+    public boolean validarTicketActual() {
+        return validarTicket(ticketActual);
+    }
+
+    public boolean tieneTicketActual() {
+        return ticketActual != null;
+    }
+
+    public String mostrarTicketActual() {
+        if (ticketActual == null) {
+            return "Aún no se ha generado un ticket.";
+        }
+        return resumenTicket(ticketActual);
+    }
+
+    public Path obtenerRutaQrActual() {
+        return rutaQrActual;
     }
 
     public Ticket generarTicket(Factura factura) {
@@ -51,15 +93,22 @@ public class GestorTicket {
                 generarMatrizQR(ticket, factura);
 
         ticket.setCodigoQR(codigoQR);
+        ticketActual = ticket;
 
         /*
          * Mantiene también la relación Factura -> Ticket
          */
         factura.setTicket(ticket);
 
-        guardarQRComoImagen(ticket);
+        rutaQrActual = guardarQRComoImagen(ticket);
 
         return ticket;
+    }
+
+    private String resumenTicket(Ticket ticket) {
+        return "Ticket #%d — %s".formatted(
+                ticket.getIdTicket(),
+                ticket.getFechaGeneracion());
     }
 
     private BitMatrix generarMatrizQR(

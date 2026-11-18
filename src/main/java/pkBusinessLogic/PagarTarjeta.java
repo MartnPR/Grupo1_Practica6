@@ -13,6 +13,12 @@ public class PagarTarjeta {
     private String idTransaccion;
     private String estadoPago;
 
+    public PagarTarjeta() {
+        this.token = System.getenv("PAYPHONE_TOKEN");
+        this.storeId = System.getenv("PAYPHONE_STORE_ID");
+        this.estadoPago = "NO_CONFIGURADO";
+    }
+
     public PagarTarjeta(
             String token,
             String storeId) {
@@ -55,6 +61,12 @@ public class PagarTarjeta {
 
         if (monto <= 0) {
             return false;
+        }
+
+        if (token == null || token.isBlank()
+                || storeId == null || storeId.isBlank()) {
+            throw new IllegalStateException(
+                    "La pasarela PayPhone no está configurada.");
         }
 
         this.telefono = telefono;
@@ -101,30 +113,8 @@ public class PagarTarjeta {
     }
 
     private boolean generarPagoPorPayPhone() {
-
-        /*
-         * Próxima implementación:
-         *
-         * POST:
-         * https://pay.payphonetodoesposible.com/api/Sale
-         *
-         * Authorization:
-         * Bearer <token>
-         *
-         * Content-Type:
-         * application/json
-         *
-         * Datos principales:
-         *
-         * phoneNumber
-         * countryCode = 593
-         * amount
-         * clientTransactionId
-         * reference
-         * storeId
-         * currency = USD
-         */
-
-        return true;
+        estadoPago = "NO_DISPONIBLE";
+        throw new UnsupportedOperationException(
+                "La integración de cobro PayPhone aún no está implementada.");
     }
 }

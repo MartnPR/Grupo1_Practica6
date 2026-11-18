@@ -4,20 +4,18 @@ import java.awt.CardLayout;
 import java.awt.Dimension;
 import java.awt.GraphicsEnvironment;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import pkBusinessLogic.AutenticarUsuario;
-import pkBusinessLogic.ComprarAlimento;
 import pkBusinessLogic.GestorTicket;
+import pkBusinessLogic.PagarTarjeta;
 import pkBusinessLogic.ReservarMesa;
 import pkBusinessLogic.SeleccionarAlimento;
 import pkDataAccess.pkDAO.AlimentoDAO;
 import pkDataAccess.pkDAO.MesaDAO;
 import pkDataAccess.pkDAO.ReservaDAO;
-import pkDataAccess.pkDTO.UsuarioPoliComedor;
 import pkGUI.boundary.Login;
 import pkGUI.boundary.MenuPrincipal;
 import pkGUI.boundary.PantallaBase;
@@ -53,20 +51,19 @@ public final class CafeteriaApp {
      */
     private void iniciar() {
         AlimentoDAO alimentoDAO = new AlimentoDAO();
+        SeleccionarAlimento seleccionAlimentos =
+                new SeleccionarAlimento(alimentoDAO);
         AutenticarUsuario autenticacion = new AutenticarUsuario();
         MesaDAO mesaDAO = new MesaDAO();
         Map<String, PantallaBase> pantallas = new LinkedHashMap<>();
         pantallas.put("menu", new MenuPrincipal(new SelectorVentanas("comedor")));
-        pantallas.put("comedor",
-                new PantallaComedor(new SeleccionarAlimento(alimentoDAO)));
-        pantallas.put("pago", new PantallaPago(new ComprarAlimento(alimentoDAO)));
+        pantallas.put("comedor", new PantallaComedor(seleccionAlimentos));
+        pantallas.put("pago", new PantallaPago(
+                seleccionAlimentos, new PagarTarjeta()));
         pantallas.put("mesas", new PantallaMesasDisponibles(
-                List.of(),
-                new ReservarMesa(new ReservaDAO(), mesaDAO),
-                mesaDAO));
+                new ReservarMesa(new ReservaDAO(), mesaDAO)));
         pantallas.put("ticket", new PantallaTicket(new GestorTicket()));
-        pantallas.put("login", new Login(
-                autenticacion, new UsuarioPoliComedor()));
+        pantallas.put("login", new Login(autenticacion));
 
         JFrame ventana = new JFrame("Food4All");
         CardLayout tarjetas = new CardLayout();

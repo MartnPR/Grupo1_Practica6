@@ -9,7 +9,6 @@ import javax.swing.JPanel;
 import pkBusinessLogic.GestorFactura;
 import pkBusinessLogic.GestorTicket;
 import pkBusinessLogic.PagarEfectivo;
-import pkDataAccess.pkDTO.Factura;
 
 /**
  * Pantalla de operaciones básicas del cajero.
@@ -42,8 +41,7 @@ public final class PantallaCajero extends PantallaBase {
         JButton ticket = new JButton("Generar ticket");
         ticket.addActionListener(event -> generarTicket());
         JButton pago = new JButton("Registrar pago en efectivo");
-        pago.addActionListener(event -> mostrarEstado(
-                Boolean.toString(pagos.pagarConEfectivo())));
+        pago.addActionListener(event -> registrarPago());
         JButton factura = new JButton("Generar factura");
         factura.addActionListener(event -> generarFactura());
         acciones.add(ticket);
@@ -55,20 +53,25 @@ public final class PantallaCajero extends PantallaBase {
         contenido().add(acciones, BorderLayout.SOUTH);
     }
 
-    /**
-     * Genera un ticket de demostración.
-     */
-    private void generarTicket() {
-        Factura factura = gestorFactura.generarFactura(1, "Efectivo", 0, 0);
-        mostrarEstado("Ticket generado: "
-                + gestorTicket.generarTicket(factura).getIdTicket());
+    public void generarTicket() {
+        mostrarEstado(mensajePedidoNoDisponible(
+                "No se puede generar un ticket sin un pedido cargado."));
     }
 
-    /**
-     * Genera una factura de demostración.
-     */
-    private void generarFactura() {
-        mostrarEstado(gestorFactura.generarFactura(1, "Efectivo", 0, 0).toString());
+    public void generarFactura() {
+        mostrarEstado(mensajePedidoNoDisponible(
+                "No se puede generar una factura sin el detalle de un pedido."));
+    }
+
+    private void registrarPago() {
+        mostrarEstado(mensajePedidoNoDisponible(
+                "No se puede registrar un pago sin un pedido cargado."));
+    }
+
+    private String mensajePedidoNoDisponible(String accion) {
+        return vistaPedidos.pedidoSeleccionado() == null
+                ? "No hay pedidos cargados. " + accion
+                : accion;
     }
 
     /**

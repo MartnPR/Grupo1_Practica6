@@ -1,7 +1,6 @@
 package pkGUI.boundary;
 
 import pkBusinessLogic.AutenticarUsuario;
-import pkDataAccess.pkDTO.UsuarioPoliComedor;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.FlowLayout;
@@ -16,7 +15,6 @@ import javax.swing.JTextField;
 public final class Login extends PantallaBase {
     private final FormularioLogin formulario = new FormularioLogin();
     private final AutenticarUsuario autenticacion;
-    private final UsuarioPoliComedor usuario;
     private final CardLayout formulariosLayout = new CardLayout();
     private final JPanel formularios = new JPanel(formulariosLayout);
     private final JTextField nombreRegistro = new JTextField(18);
@@ -24,12 +22,9 @@ public final class Login extends PantallaBase {
     private final JTextField credencialRegistro = new JTextField(18);
     private final JPasswordField passwordRegistro = new JPasswordField(18);
 
-    public Login(
-            AutenticarUsuario autenticacion,
-            UsuarioPoliComedor usuario) {
+    public Login(AutenticarUsuario autenticacion) {
         super("Iniciar sesión");
         this.autenticacion = Objects.requireNonNull(autenticacion);
-        this.usuario = Objects.requireNonNull(usuario);
         formularios.add(crearPanelLogin(), "login");
         formularios.add(crearPanelRegistro(), "registro");
         contenido().add(new JLabel(
@@ -91,7 +86,6 @@ public final class Login extends PantallaBase {
                     formulario.obtenerCredencial(),
                     formulario.obtenerPassword());
             if (autenticado) {
-                usuario.setIdUsuario(formulario.obtenerCredencial());
                 mostrarEstado("Sesión iniciada.");
                 navegar("ingreso");
             } else {
@@ -129,10 +123,6 @@ public final class Login extends PantallaBase {
 
     public AutenticarUsuario getAutenticacion() {
         return autenticacion;
-    }
-
-    public UsuarioPoliComedor getUsuario() {
-        return usuario;
     }
 
     public void mostrar() {

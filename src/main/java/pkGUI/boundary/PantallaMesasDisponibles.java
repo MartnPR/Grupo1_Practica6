@@ -1,8 +1,6 @@
 package pkGUI.boundary;
 
 import pkBusinessLogic.ReservarMesa;
-import pkDataAccess.pkDAO.MesaDAO;
-import pkDataAccess.pkDTO.Mesa;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.util.List;
@@ -15,34 +13,19 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
 public final class PantallaMesasDisponibles extends PantallaBase {
-    private List<Mesa> mesas;
+    private List<String> mesas;
     private final ReservarMesa controlMesas;
-    private final MesaDAO mesaDAO;
-    private final DefaultListModel<Mesa> modelo = new DefaultListModel<>();
-    private final JList<Mesa> lista = new JList<>(modelo);
+    private final DefaultListModel<String> modelo = new DefaultListModel<>();
+    private final JList<String> lista = new JList<>(modelo);
 
-    public PantallaMesasDisponibles(
-            List<Mesa> mesas,
-            ReservarMesa controlMesas,
-            MesaDAO mesaDAO) {
+    public PantallaMesasDisponibles(ReservarMesa controlMesas) {
         super("Mesas disponibles");
-        this.mesas = List.copyOf(mesas);
+        this.mesas = List.of();
         this.controlMesas = Objects.requireNonNull(controlMesas);
-        this.mesaDAO = Objects.requireNonNull(mesaDAO);
-        lista.setCellRenderer((list, mesa, index, isSelected, cellHasFocus) -> {
-            JLabel item = new JLabel("Mesa %d — %s".formatted(
-                    mesa.getIdMesa(), mesa.isReservada() ? "reservada" : "disponible"));
-            if (isSelected) {
-                item.setOpaque(true);
-                item.setBackground(list.getSelectionBackground());
-                item.setForeground(list.getSelectionForeground());
-            }
-            return item;
-        });
         JButton consultar = new JButton("Consultar disponibilidad");
         consultar.addActionListener(event -> consultarDisponibilidad());
         JButton actualizar = new JButton("Cargar mesas");
-        actualizar.addActionListener(event -> cargarMesas());
+        actualizar.addActionListener(event -> actualizarMesas());
         JButton volver = new JButton("Volver al menú");
         volver.addActionListener(event -> navegar("menu"));
         JPanel acciones = new JPanel(new FlowLayout(FlowLayout.LEADING));
@@ -55,13 +38,18 @@ public final class PantallaMesasDisponibles extends PantallaBase {
         contenido().add(new JScrollPane(lista), BorderLayout.CENTER);
         contenido().add(acciones, BorderLayout.SOUTH);
         actualizarMesas(this.mesas);
+        lista.addListSelectionListener(event -> {
+            if (!event.getValueIsAdjusting()) {
+                seleccionarMesa();
+            }
+        });
     }
 
-    public List<Mesa> getMesas() {
+    public List<String> getMesas() {
         return mesas;
     }
 
-    public void actualizarMesas(List<Mesa> mesas) {
+    private void actualizarMesas(List<String> mesas) {
         this.mesas = List.copyOf(mesas);
         modelo.clear();
         this.mesas.forEach(modelo::addElement);
@@ -71,26 +59,29 @@ public final class PantallaMesasDisponibles extends PantallaBase {
         return controlMesas;
     }
 
-    public Mesa seleccionMesa() {
-        return lista.getSelectedValue();
+    public void seleccionarMesa() {
+        String mesa = lista.getSelectedValue();
+        if (mesa != null) {
+            mostrarEstado("Mesa seleccionada: %s".formatted(mesa));
+        }
     }
 
     public void MesasDisponibles() {
-        cargarMesas();
+        actualizarMesas();
         setVisible(true);
     }
 
-    private void cargarMesas() {
+    public void actualizarMesas() {
         try {
-            actualizarMesas(mesaDAO.leerTodos());
+            actualizarMesas(controlMesas.listarMesasParaVista());
             mostrarEstado("%d mesas cargadas.".formatted(mesas.size()));
         } catch (RuntimeException error) {
             mostrarEstado(mensajeError(error));
         }
     }
 
-    private void consultarDisponibilidad() {
-        Mesa seleccionada = seleccionMesa();
+    public void consultarDisponibilidad() {
+        String seleccionada = lista.getSelectedValue();
         if (seleccionada == null) {
             mostrarEstado("Selecciona una mesa.");
             return;
