@@ -97,16 +97,44 @@ public class ReservarMesa {
             return false;
         }
 
-        Mesa mesaRegistrada =
-                mesaDAO.buscarPorId(
-                        mesa.getIdMesa()
-                );
+        return consultarDisponibilidadMesa(mesa.getIdMesa());
+    }
+
+    public boolean consultarDisponibilidadMesa(int idMesa) {
+        Mesa mesaRegistrada = mesaDAO.buscarPorId(idMesa);
 
         if (mesaRegistrada == null) {
             return false;
         }
 
         return !mesaRegistrada.isReservada();
+    }
+
+    public boolean consultarDisponibilidadMesa(String mesaEnVista) {
+        if (mesaEnVista == null) {
+            return false;
+        }
+
+        int separador = mesaEnVista.indexOf(" | ");
+        if (separador <= 0) {
+            return false;
+        }
+
+        try {
+            return consultarDisponibilidadMesa(
+                    Integer.parseInt(mesaEnVista.substring(0, separador)));
+        } catch (NumberFormatException error) {
+            return false;
+        }
+    }
+
+    public List<String> listarMesasParaVista() {
+        return mesaDAO.leerTodos().stream()
+                .map(mesa -> "%d | Mesa %d — %s".formatted(
+                        mesa.getIdMesa(),
+                        mesa.getIdMesa(),
+                        mesa.isReservada() ? "reservada" : "disponible"))
+                .toList();
     }
 
     private boolean marcarMesaReservada(

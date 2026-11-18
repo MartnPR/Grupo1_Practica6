@@ -14,7 +14,7 @@ public final class VistaPedidosCajero extends JPanel {
 
     public VistaPedidosCajero() {
         super(new BorderLayout(8, 8));
-        add(new JLabel("Pedidos de ejemplo (datos no persistidos)"), BorderLayout.NORTH);
+        add(new JLabel("No hay pedidos disponibles."), BorderLayout.NORTH);
         add(new JScrollPane(lista), BorderLayout.CENTER);
         add(detalleTicket, BorderLayout.SOUTH);
         listarPedidos();
@@ -23,17 +23,14 @@ public final class VistaPedidosCajero extends JPanel {
     public void listarPedidos() {
         setVisible(true);
         pedidos.clear();
-        pedidos.addElement("Pedido demo #101 — 2 cafés");
-        pedidos.addElement("Pedido demo #102 — 1 sándwich");
-        pedidos.addElement("Pedido demo #103 — 1 jugo");
     }
 
     public void mostrarDatosTicket() {
         setVisible(true);
         String pedido = lista.getSelectedValue();
         detalleTicket.setText(pedido == null
-                ? "Selecciona un pedido para ver sus datos."
-                : pedido + " (datos de ejemplo; no es un ticket real).");
+                ? "No hay un pedido seleccionado."
+                : "Pedido seleccionado: " + pedido);
     }
 
     public void ocultar() {

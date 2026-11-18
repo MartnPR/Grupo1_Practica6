@@ -31,7 +31,7 @@ public final class FormularioPago extends JPanel {
         add(opcion, constraints);
         constraints.gridx = 0;
         constraints.gridy = 1;
-        add(new JLabel("Referencia/datos (demostración):"), constraints);
+        add(new JLabel("Teléfono para tarjeta / referencia:"), constraints);
         constraints.gridx = 1;
         add(datos, constraints);
     }

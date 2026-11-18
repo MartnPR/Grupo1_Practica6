@@ -1,8 +1,6 @@
 package pkGUI.boundary;
 
 import pkBusinessLogic.SeleccionarAlimento;
-import pkDataAccess.pkDTO.Alimento;
-import java.util.Locale;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.util.List;
@@ -18,16 +16,20 @@ public final class PantallaComedor extends PantallaBase {
 
     public PantallaComedor(SeleccionarAlimento controlAlimentos) {
         super("Comedor");
-        this.menu = new VistaAlimentos(List.<Alimento>of());
+        this.menu = new VistaAlimentos();
         this.busqueda = new FormularioBusqueda();
         this.controlAlimentos = Objects.requireNonNull(controlAlimentos);
         busqueda.setAccionBusqueda(this::cargarMenu);
+        menu.setAccionSeleccion(this::seleccionarAlimento);
         JButton cargar = new JButton("Buscar alimentos");
         cargar.addActionListener(event -> cargarMenu());
+        JButton seleccionar = new JButton("Seleccionar alimento");
+        seleccionar.addActionListener(event -> menu.seleccionarAlimento());
         JButton pagar = new JButton("Ir a pago");
         pagar.addActionListener(event -> navegar("pago"));
         JPanel controles = new JPanel(new FlowLayout(FlowLayout.LEADING));
         controles.add(cargar);
+        controles.add(seleccionar);
         controles.add(pagar);
         JPanel busquedaPanel = new JPanel(new BorderLayout(8, 8));
         busquedaPanel.add(busqueda, BorderLayout.CENTER);
@@ -37,25 +39,35 @@ public final class PantallaComedor extends PantallaBase {
         cargarMenu();
     }
 
-    private void cargarMenu() {
+    public void cargarMenu() {
+        solicitarBusqueda();
+    }
+
+    public boolean solicitarBusqueda() {
         try {
-            List<Alimento> filtrados = solicitarBusqueda();
+            List<String> filtrados = controlAlimentos
+                    .listarAlimentosPorTipoParaVista(
+                            busqueda.obtenerCriterioBusqueda());
             menu.actualizarAlimentos(filtrados);
-            mostrarEstado("%d alimentos encontrados en el catálogo local."
+            mostrarEstado("%d alimentos encontrados."
                     .formatted(filtrados.size()));
+            return true;
         } catch (RuntimeException error) {
             mostrarEstado(mensajeError(error));
+            return false;
         }
     }
 
-
-    public List<Alimento> solicitarBusqueda() {
-        String criterio = busqueda.obtenerCriterioBusqueda().toLowerCase(Locale.ROOT);
-        return controlAlimentos.listarAlimentosDisponibles().stream()
-                .filter(alimento -> alimento.getNombre().toLowerCase(Locale.ROOT).contains(criterio)
-                        || alimento.getTipo().toLowerCase(Locale.ROOT).contains(criterio)
-                        || alimento.getDescripcion().toLowerCase(Locale.ROOT).contains(criterio))
-                .toList();
+    private void seleccionarAlimento(String opcion) {
+        try {
+            if (controlAlimentos.seleccionarAlimento(opcion)) {
+                mostrarEstado(controlAlimentos.resumenCarritoParaVista());
+            } else {
+                mostrarEstado("El alimento ya no está disponible.");
+            }
+        } catch (RuntimeException error) {
+            mostrarEstado(mensajeError(error));
+        }
     }
 
     public void mostrar() {
@@ -67,7 +79,7 @@ public final class PantallaComedor extends PantallaBase {
         return controlAlimentos;
     }
 
-    public List<Alimento> getMenuAlimentos() {
+    public List<String> getMenuAlimentos() {
         return menu.getMenuAlimentos();
     }
 
