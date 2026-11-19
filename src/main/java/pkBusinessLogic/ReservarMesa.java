@@ -15,24 +15,13 @@ public class ReservarMesa {
     private final ReservaDAO reservaDAO;
     private final MesaDAO mesaDAO;
 
-    public ReservarMesa(
-            ReservaDAO reservaDAO,
-            MesaDAO mesaDAO) {
+    public ReservarMesa() {
 
-        if (reservaDAO == null) {
-            throw new IllegalArgumentException(
-                    "ReservaDAO no puede ser nulo."
-            );
-        }
+        this.reservaDAO =
+                new ReservaDAO();
 
-        if (mesaDAO == null) {
-            throw new IllegalArgumentException(
-                    "MesaDAO no puede ser nulo."
-            );
-        }
-
-        this.reservaDAO = reservaDAO;
-        this.mesaDAO = mesaDAO;
+        this.mesaDAO =
+                new MesaDAO();
     }
 
     public boolean crearReserva(

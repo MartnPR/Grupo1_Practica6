@@ -7,12 +7,8 @@ public class AutenticarUsuario {
 
     private final UsuarioPoliComedorDAO usuarioDAO;
 
-    public AutenticarUsuario(UsuarioPoliComedorDAO usuarioDAO) {
-        if (usuarioDAO == null) {
-            throw new IllegalArgumentException(
-                    "UsuarioPoliComedorDAO no puede ser nulo.");
-        }
-        this.usuarioDAO = usuarioDAO;
+    public AutenticarUsuario() {
+        this.usuarioDAO = new UsuarioPoliComedorDAO();
     }
 
     public boolean autenticar(

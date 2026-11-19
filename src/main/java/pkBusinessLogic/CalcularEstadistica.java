@@ -1,12 +1,12 @@
 package pkBusinessLogic;
 
+import java.util.List;
+
+import pkDataAccess.pkDAO.FacturaDAO;
+import pkDataAccess.pkDAO.ReporteDAO;
 import pkDataAccess.pkDAO.ReservaDAO;
 import pkDataAccess.pkDTO.Factura;
-import pkDataAccess.pkDAO.FacturaDAO;
 import pkDataAccess.pkDTO.Reporte;
-import pkDataAccess.pkDAO.ReporteDAO;
-
-import java.util.List;
 
 public class CalcularEstadistica {
 
@@ -14,37 +14,23 @@ public class CalcularEstadistica {
     private final ReservaDAO reservaDAO;
     private final ReporteDAO reporteDAO;
 
-    public CalcularEstadistica(
-            FacturaDAO facturaDAO,
-            ReservaDAO reservaDAO,
-            ReporteDAO reporteDAO) {
+    public CalcularEstadistica() {
 
-        if (facturaDAO == null) {
-            throw new IllegalArgumentException(
-                    "FacturaDAO no puede ser nulo."
-            );
-        }
+        this.facturaDAO =
+                new FacturaDAO();
 
-        if (reservaDAO == null) {
-            throw new IllegalArgumentException(
-                    "ReservaDAO no puede ser nulo."
-            );
-        }
+        this.reservaDAO =
+                new ReservaDAO();
 
-        if (reporteDAO == null) {
-            throw new IllegalArgumentException(
-                    "ReporteDAO no puede ser nulo."
-            );
-        }
-
-        this.facturaDAO = facturaDAO;
-        this.reservaDAO = reservaDAO;
-        this.reporteDAO = reporteDAO;
+        this.reporteDAO =
+                new ReporteDAO();
     }
 
     public double calcularTotalVentas() {
 
-        List<Factura> facturas = facturaDAO.leerTodos();
+        List<Factura> facturas =
+                facturaDAO.leerTodos();
+
         double totalVentas = 0;
 
         if (facturas == null) {
@@ -52,7 +38,9 @@ public class CalcularEstadistica {
         }
 
         for (Factura factura : facturas) {
-            totalVentas += factura.getTotal()
+
+            totalVentas +=
+                    factura.getTotal()
                     - factura.getDescuento();
         }
 
@@ -62,30 +50,40 @@ public class CalcularEstadistica {
     public int calcularTotalComidasVendidas() {
 
         /*
-         * Si cada factura equivale a un pedido, puede
-         * utilizarse temporalmente la cantidad de facturas.
+         * Temporalmente se toma la cantidad
+         * de facturas como cantidad de pedidos.
          *
-         * Si una factura contiene varias comidas,
-         * debe sumarse la cantidad de sus detalles.
+         * Si se requiere la cantidad exacta
+         * de alimentos, debe calcularse desde
+         * las líneas de factura.
          */
 
-        List<Factura> facturas = facturaDAO.leerTodos();
+        List<Factura> facturas =
+                facturaDAO.leerTodos();
 
-        return facturas == null ? 0 : facturas.size();
+        return facturas == null
+                ? 0
+                : facturas.size();
     }
 
     public int calcularTotalReservasHechas() {
+
         return reservaDAO.getCount();
     }
 
     public Reporte generarReporte() {
 
-        Reporte reporte = new Reporte();
+        Reporte reporte =
+                new Reporte();
 
-        reporte.setTotalVentas(calcularTotalVentas());
+        reporte.setTotalVentas(
+                calcularTotalVentas()
+        );
+
         reporte.setTotalPedidos(
                 calcularTotalComidasVendidas()
         );
+
         reporte.setTotalReservas(
                 calcularTotalReservasHechas()
         );

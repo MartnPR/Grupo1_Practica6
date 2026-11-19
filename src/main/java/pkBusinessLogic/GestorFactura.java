@@ -23,15 +23,10 @@ public class GestorFactura {
     private static final Path CARPETA_FACTURAS =
             Path.of("facturas");
 
-    public GestorFactura(FacturaDAO facturaDAO) {
+    public GestorFactura() {
 
-        if (facturaDAO == null) {
-            throw new IllegalArgumentException(
-                    "FacturaDAO no puede ser nulo."
-            );
-        }
-
-        this.facturaDAO = facturaDAO;
+        this.facturaDAO =
+                new FacturaDAO();
     }
 
     public Factura generarFactura(
