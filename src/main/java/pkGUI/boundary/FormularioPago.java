@@ -7,13 +7,15 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import java.util.function.Consumer;
 
 public final class FormularioPago extends JPanel {
     private String opcionPago;
     private String datosPago;
     private final JComboBox<String> opcion = new JComboBox<>(
-            new String[] {"Efectivo", "Tarjeta", "Transferencia"});
+            new String[] {"Efectivo", "Tarjeta"});
     private final JTextField datos = new JTextField(20);
+    private Consumer<String> accionCambioPago = ignored -> { };
 
     public FormularioPago(String opcionPago, String datosPago) {
         super(new GridBagLayout());
@@ -21,6 +23,8 @@ public final class FormularioPago extends JPanel {
         this.datosPago = datosPago;
         opcion.setSelectedItem(opcionPago);
         datos.setText(datosPago);
+        opcion.addActionListener(event ->
+                accionCambioPago.accept(obtenerOpcionPago()));
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.insets = new Insets(5, 5, 5, 5);
         constraints.anchor = GridBagConstraints.WEST;
@@ -51,5 +55,12 @@ public final class FormularioPago extends JPanel {
         this.datosPago = datosPago;
         opcion.setSelectedItem(opcionPago);
         datos.setText(datosPago);
+    }
+
+    public void setAccionCambioPago(Consumer<String> accionCambioPago) {
+        this.accionCambioPago =
+                accionCambioPago == null
+                        ? ignored -> { }
+                        : accionCambioPago;
     }
 }
