@@ -1,28 +1,24 @@
 package pkDataAccess.pkDTO;
 
 import java.util.Date;
-import java.util.List;
-import java.util.ArrayList;
 
 public class Reserva {
     private Integer idReserva;
     private Date fechaCreacion;
     private String franjaHoraria;
-    private String codigoEstudiante;
-    private String cedulaProfesor;
-    private List<Mesa> listMesa;
-    private UsuarioPoliComedor usuario;
     private boolean cancelada;
+    private Mesa mesa;
+    private UsuarioPoliComedor usuario;
 
     
     public Reserva() {
     }
 
-    public Reserva(String codigoEstudiante, String franjaHoraria) {
-        this.codigoEstudiante = codigoEstudiante;
+    public Reserva(UsuarioPoliComedor usuario, Mesa mesa, String franjaHoraria) {
+        this.usuario = usuario;
         this.franjaHoraria = franjaHoraria;
         this.fechaCreacion = new Date();
-        this.listMesa = new ArrayList<>();
+        this.mesa = mesa;
     }
 
     public Integer getIdReserva() {
@@ -49,28 +45,13 @@ public class Reserva {
         this.franjaHoraria = franjaHoraria;
     }
 
-    public String getCodigoEstudiante() {
-        return codigoEstudiante;
+   
+    public Mesa getMesa() {
+        return mesa;
     }
 
-    public void setCodigoEstudiante(String codigoEstudiante) {
-        this.codigoEstudiante = codigoEstudiante;
-    }
-
-    public String getCedulaProfesor() {
-        return cedulaProfesor;
-    }
-
-    public void setCedulaProfesor(String cedulaProfesor) {
-        this.cedulaProfesor = cedulaProfesor;
-    }
-
-    public List<Mesa> getListMesa() {
-        return listMesa;
-    }
-
-    public void setListMesa(List<Mesa> listMesa) {
-        this.listMesa = listMesa;
+    public void setMesa(Mesa mesa) {
+        this.mesa = mesa;
     }
 
     public UsuarioPoliComedor getUsuario() {

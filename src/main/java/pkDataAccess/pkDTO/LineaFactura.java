@@ -1,30 +1,29 @@
 package pkDataAccess.pkDTO;
 
-import java.util.ArrayList;
-import java.util.List;
 
 public class LineaFactura {
-    private Integer numLineaCompra;
+    private Integer numLineaFactura;
     private int cantidad;
     private double precioUnitario;
     private double subtotalAlimento;
-    private List<Alimento> alimentoDetalle;
+    private Alimento alimento;
 
+    
     
     public LineaFactura() {
     }
 
-    public LineaFactura(int cantidad) {
+    public LineaFactura(int cantidad, Alimento alimento) {
         this.cantidad = cantidad;
-        this.alimentoDetalle = new ArrayList<>();
+        this.alimento = alimento;
     }
 
-    public Integer getNumLineaCompra() {
-        return numLineaCompra;
+    public Integer getNumLineaFactura() {
+        return numLineaFactura;
     }
 
-    public void setNumLineaCompra(Integer numLineaCompra) {
-        this.numLineaCompra = numLineaCompra;
+    public void setNumLineaFactura(Integer numLineaFactura) {
+        this.numLineaFactura = numLineaFactura;
     }
 
     public int getCantidad() {
@@ -51,13 +50,14 @@ public class LineaFactura {
         this.subtotalAlimento = subtotalAlimento;
     }
 
-    public List<Alimento> getAlimentoDetalle() {
-        return alimentoDetalle;
+    public Alimento getAlimento() {
+        return alimento;
     }
 
-    public void setAlimentoDetalle(List<Alimento> alimentoDetalle) {
-        this.alimentoDetalle = alimentoDetalle;
+    public void setAlimento(Alimento alimento) {
+        this.alimento = alimento;
     }
+
 
     @Override
     public String toString() {
