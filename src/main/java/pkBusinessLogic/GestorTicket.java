@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Date;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.WriterException;
@@ -21,13 +20,6 @@ public class GestorTicket {
 
     private static final Path CARPETA_QR =
             Path.of("tickets", "qr");
-
-    /*
-     * Temporal mientras el identificador del ticket
-     * no sea generado directamente por la BD.
-     */
-    private static final AtomicInteger SECUENCIA =
-            new AtomicInteger(1);
 
     private Factura facturaPendiente;
     private Ticket ticketActual;
@@ -120,7 +112,7 @@ public class GestorTicket {
         Ticket ticket = new Ticket();
 
         ticket.setIdTicket(
-                SECUENCIA.getAndIncrement()
+                ticketDAO.getNextId()
         );
 
         ticket.setFechaGeneracion(

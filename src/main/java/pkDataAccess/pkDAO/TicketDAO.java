@@ -6,6 +6,8 @@ import java.util.List;
 import com.google.zxing.common.BitMatrix;
 import pkDataAccess.pkDTO.Ticket;
 import pkDataAccess.pkIDataAccess.ITicketDataHelper;
+import java.sql.Timestamp;
+
 
 /**
  * DAO encargado de las operaciones de persistencia de los tickets.
@@ -40,17 +42,30 @@ public class TicketDAO implements ITicketDataHelper {
      */
     @Override
     public void agregar(Ticket object) {
-        execute("INSERT INTO TICKET "
+
+        Timestamp fechaGeneracion =
+                object.getFechaGeneracion() == null
+                        ? null
+                        : new Timestamp(
+                                object.getFechaGeneracion().getTime()
+                        );
+
+        execute(
+                "INSERT INTO TICKET "
                 + "(IDTICKET, FECHA_GENERACION, VALIDO, CODIGO_QR, IDFACTURA) "
                 + "VALUES (?, ?, ?, ?, ?)",
                 object.getIdTicket(),
-                object.getFechaGeneracion(),
+                fechaGeneracion,
                 object.isValido(),
                 object.getCodigoQR() == null
                         ? null
-                        : object.getCodigoQR().toString()
-                                .getBytes(java.nio.charset.StandardCharsets.UTF_8),
-                object.getIdFactura());
+                        : object.getCodigoQR()
+                                .toString()
+                                .getBytes(
+                                        java.nio.charset.StandardCharsets.UTF_8
+                                ),
+                object.getIdFactura()
+        );
     }
 
     /**
@@ -87,17 +102,33 @@ public class TicketDAO implements ITicketDataHelper {
      */
     @Override
     public boolean actualizar(Ticket object) {
-        return execute("UPDATE TICKET SET FECHA_GENERACION = ?, VALIDO = ?, "
-                + "CODIGO_QR = ?, IDFACTURA = ? "
+
+        Timestamp fechaGeneracion =
+                object.getFechaGeneracion() == null
+                        ? null
+                        : new Timestamp(
+                                object.getFechaGeneracion().getTime()
+                        );
+
+        return execute(
+                "UPDATE TICKET SET "
+                + "FECHA_GENERACION = ?, "
+                + "VALIDO = ?, "
+                + "CODIGO_QR = ?, "
+                + "IDFACTURA = ? "
                 + "WHERE IDTICKET = ?",
-                object.getFechaGeneracion(),
+                fechaGeneracion,
                 object.isValido(),
                 object.getCodigoQR() == null
                         ? null
-                        : object.getCodigoQR().toString()
-                                .getBytes(java.nio.charset.StandardCharsets.UTF_8),
+                        : object.getCodigoQR()
+                                .toString()
+                                .getBytes(
+                                        java.nio.charset.StandardCharsets.UTF_8
+                                ),
                 object.getIdFactura(),
-                object.getIdTicket()) > 0;
+                object.getIdTicket()
+        ) > 0;
     }
 
     /**
@@ -127,6 +158,15 @@ public class TicketDAO implements ITicketDataHelper {
                 + "FROM TICKET WHERE VALIDO = ? ORDER BY IDTICKET", valido);
     }
 
+    
+    public int getNextId() {
+
+        return aggregate(
+                "SELECT COALESCE(MAX(IDTICKET), 0) + 1 "
+                + "FROM TICKET"
+        );
+    }
+    
     /**
      * Obtiene la cantidad total de tickets registrados.
      *
@@ -228,8 +268,23 @@ public class TicketDAO implements ITicketDataHelper {
      * @param exception excepción original
      * @return excepción de ejecución con contexto
      */
-    private IllegalStateException error(String sql, SQLException exception) {
+    private IllegalStateException error(
+            String sql,
+            SQLException exception) {
+
+        String mensaje =
+                "Database operation failed: "
+                + sql
+                + "\nSQLState: "
+                + exception.getSQLState()
+                + "\nDetalle: "
+                + exception.getMessage();
+
+        System.err.println(mensaje);
+
         return new IllegalStateException(
-                "Database operation failed: " + sql, exception);
+                mensaje,
+                exception
+        );
     }
 }
