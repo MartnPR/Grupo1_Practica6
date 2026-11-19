@@ -2,10 +2,14 @@ package pkDataAccess.pkDAO;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 public final class ConnectionDB {
     private final String url;
@@ -76,6 +80,119 @@ public final class ConnectionDB {
             connection.close();
             connection = null;
         }
+    }
+
+    public int executeUpdate(String sql, Object... parameters) throws SQLException {
+            boolean local = !hasActiveConnection();
+            Connection current = acquire();
+            try (PreparedStatement statement = current.prepareStatement(sql)) {
+                if (sql.indexOf('?') >= 0) {
+                    setParameters(statement, parameters);
+                }
+                return statement.executeUpdate();
+            } finally {
+                release(local);
+            }
+        }
+
+    public <T> List<T> query(String sql, RowMapper<T> mapper,
+                Object... parameters) throws SQLException {
+            boolean local = !hasActiveConnection();
+            Connection current = acquire();
+            List<T> result = new ArrayList<>();
+            try (PreparedStatement statement = current.prepareStatement(sql)) {
+                if (sql.indexOf('?') >= 0) {
+                    setParameters(statement, parameters);
+                }
+                try (ResultSet rows = statement.executeQuery()) {
+                    while (rows.next()) {
+                        result.add(mapper.map(rows));
+                    }
+                }
+                return result;
+            } finally {
+                release(local);
+            }
+        }
+
+    public int aggregate(String sql, Object... parameters) throws SQLException {
+            List<Integer> result = query(sql, rows -> rows.getInt(1), parameters);
+            return result.isEmpty() ? 0 : result.get(0);
+        }
+
+    public int[] executeBatch(String sql, List<Object[]> parameters)
+                throws SQLException {
+            boolean local = !hasActiveConnection();
+            Connection current = acquire();
+            try (PreparedStatement statement = current.prepareStatement(sql)) {
+                for (Object[] values : parameters) {
+                    setParameters(statement, values);
+                    statement.addBatch();
+                }
+                return statement.executeBatch();
+            } finally {
+                release(local);
+            }
+        }
+
+    public <T> T inTransaction(TransactionWork<T> work) throws SQLException {
+            if (connection != null && !connection.isClosed()) {
+                throw new SQLException("A transaction is already open.");
+            }
+            connection = connect();
+            boolean autoCommit = connection.getAutoCommit();
+            connection.setAutoCommit(false);
+            try {
+                T result = work.execute();
+                connection.commit();
+                connection.setAutoCommit(autoCommit);
+                return result;
+            } catch (SQLException | RuntimeException exception) {
+                connection.rollback();
+                throw exception;
+            } finally {
+                if (!connection.isClosed()) {
+                    connection.setAutoCommit(autoCommit);
+                }
+                close();
+            }
+        }
+
+    private Connection acquire() throws SQLException {
+            if (connection != null && !connection.isClosed()) {
+                return connection;
+            }
+            return connect();
+        }
+
+    private boolean hasActiveConnection() throws SQLException {
+            return connection != null && !connection.isClosed();
+        }
+
+    private void release(boolean local) throws SQLException {
+            if (local) {
+                close();
+            }
+        }
+
+    private void setParameters(PreparedStatement statement, Object[] parameters)
+                throws SQLException {
+            if (parameters.length == 1 && parameters[0] == null) {
+                return;
+            }
+            for (int i = 0; i < parameters.length; i++) {
+                statement.setObject(i + 1, parameters[i]);
+            }
+        }
+
+    @FunctionalInterface
+    public interface RowMapper<T> {
+        T map(ResultSet rows) throws SQLException;
+    }
+
+    @FunctionalInterface
+    public interface TransactionWork<T> {
+        T execute() throws SQLException;
     }
 
     private static String value(String name) {

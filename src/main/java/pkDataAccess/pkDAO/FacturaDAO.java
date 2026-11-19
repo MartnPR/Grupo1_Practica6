@@ -1,13 +1,11 @@
 package pkDataAccess.pkDAO;
 
-import java.sql.Connection;
 import java.sql.Date;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import pkDataAccess.pkDTO.Factura;
+import pkDataAccess.pkDTO.LineaFactura;
 import pkDataAccess.pkIDataAccess.IFacturaDataHelper;
 
 /**
@@ -16,8 +14,10 @@ import pkDataAccess.pkIDataAccess.IFacturaDataHelper;
 public class FacturaDAO implements IFacturaDataHelper {
 
     private final ConnectionDB connectionDB;
-    private static final String COLUMNS = "ID_FACTURA, FECHA, NUMERO_PEDIDO, "
-            + "METODO_PAGO, TOTAL, DESCUENTO";
+    private static final String COLUMNS = "IDFACTURA, FECHA, NUMEROPEDIDO, "
+            + "METODOPAGO, TOTAL, DESCUENTO, \"idUsuario\"";
+    private static final String LINE_COLUMNS = "NUMLINEAFACTURA, CANTIDAD, "
+            + "PRECIO_UNITARIO, IDFACTURA";
 
     /** Crea un DAO usando la configuración predeterminada de Food4All. */
     public FacturaDAO() {
@@ -36,20 +36,25 @@ public class FacturaDAO implements IFacturaDataHelper {
         this.connectionDB = connectionDB;
     }
 
-    /** Inserta una factura en la base de datos. */
+    /** Inserta una factura y sus líneas en una única transacción. */
     @Override
     public void agregar(Factura object) {
-        execute("INSERT INTO FACTURA (" + COLUMNS + ") VALUES (?, ?, ?, ?, ?, ?)",
-                object.getIdFactura(), date(object.getFecha()),
-                object.getNumeroPedido(), object.getMetodoPago(),
-                object.getTotal(), object.getDescuento());
+        try {
+            connectionDB.inTransaction(() -> {
+                insertHeader(object);
+                insertLines(object);
+                return null;
+            });
+        } catch (SQLException exception) {
+            throw error("insert FACTURA and LINEA_FACTURA", exception);
+        }
     }
 
-    /** Busca una factura por su identificador. */
+    /** Busca una factura por su identificador, incluyendo sus líneas. */
     @Override
     public Factura buscarPorId(String id) {
         List<Factura> result = query(
-                "SELECT " + COLUMNS + " FROM FACTURA WHERE ID_FACTURA = ?", id);
+                "SELECT " + COLUMNS + " FROM FACTURA WHERE IDFACTURA = ?", id);
         return result.isEmpty() ? null : result.get(0);
     }
 
@@ -57,26 +62,46 @@ public class FacturaDAO implements IFacturaDataHelper {
     @Override
     public List<Factura> leerTodos() {
         return query("SELECT " + COLUMNS
-                + " FROM FACTURA ORDER BY ID_FACTURA", null);
+                + " FROM FACTURA ORDER BY IDFACTURA", null);
     }
 
-    /** Actualiza los datos de una factura. */
+    /** Actualiza una factura y reemplaza sus líneas en una transacción. */
     @Override
     public boolean actualizar(Factura object) {
-        return execute("UPDATE FACTURA SET FECHA = ?, NUMERO_PEDIDO = ?, "
-                + "METODO_PAGO = ?, TOTAL = ?, DESCUENTO = ? "
-                + "WHERE ID_FACTURA = ?",
-                date(object.getFecha()), object.getNumeroPedido(),
-                object.getMetodoPago(), object.getTotal(),
-                object.getDescuento(), object.getIdFactura()) > 0;
+        try {
+            return connectionDB.inTransaction(() -> {
+            int updated;
+            updated = execute("UPDATE FACTURA SET FECHA = ?, NUMEROPEDIDO = ?, "
+                    + "METODOPAGO = ?, TOTAL = ?, DESCUENTO = ?, \"idUsuario\" = ? "
+                    + "WHERE IDFACTURA = ?", date(object.getFecha()),
+                    object.getNumeroPedido(), object.getMetodoPago(),
+                    object.getTotal(), object.getDescuento(), object.getIdUsuario(),
+                    object.getIdFactura());
+            if (updated > 0) {
+                deleteLines(object.getIdFactura());
+                insertLines(object);
+            }
+            return updated > 0;
+            });
+        } catch (SQLException exception) {
+            throw error("update FACTURA and LINEA_FACTURA", exception);
+        }
     }
 
-    /** Elimina una factura y devuelve el objeto eliminado. */
+    /** Elimina primero las líneas dependientes y luego la factura. */
     @Override
     public Factura eliminar(String id) {
         Factura result = buscarPorId(id);
         if (result != null) {
-            execute("DELETE FROM FACTURA WHERE ID_FACTURA = ?", id);
+            try {
+                connectionDB.inTransaction(() -> {
+                    deleteLines(id);
+                    execute("DELETE FROM FACTURA WHERE IDFACTURA = ?", id);
+                    return null;
+                });
+            } catch (SQLException exception) {
+                throw error("delete FACTURA and LINEA_FACTURA", exception);
+            }
         }
         return result;
     }
@@ -85,7 +110,7 @@ public class FacturaDAO implements IFacturaDataHelper {
     @Override
     public List<Factura> buscarPorMetodoPago(String metodo) {
         return query("SELECT " + COLUMNS
-                + " FROM FACTURA WHERE METODO_PAGO = ?", metodo);
+                + " FROM FACTURA WHERE METODOPAGO = ?", metodo);
     }
 
     /** Busca facturas por fecha. */
@@ -95,110 +120,103 @@ public class FacturaDAO implements IFacturaDataHelper {
                 + " FROM FACTURA WHERE FECHA = ?", date(fecha));
     }
 
-    /**
-     * Obtiene la cantidad total de facturas registradas.
-     *
-     * @return cantidad de facturas
-     */
+    /** Obtiene la cantidad total de facturas registradas. */
     public int getCount() {
         return aggregate("SELECT COUNT(*) FROM FACTURA");
     }
 
-    /**
-     * Obtiene el total mínimo registrado.
-     *
-     * @return total mínimo convertido a entero
-     */
+    /** Obtiene el total mínimo registrado. */
     public int getMin() {
         return aggregate("SELECT MIN(TOTAL) FROM FACTURA");
     }
 
-    /**
-     * Obtiene el total máximo registrado.
-     *
-     * @return total máximo convertido a entero
-     */
+    /** Obtiene el total máximo registrado. */
     public int getMax() {
         return aggregate("SELECT MAX(TOTAL) FROM FACTURA");
     }
 
-    /** Ejecuta una sentencia de modificación parametrizada. */
+    private void insertHeader(Factura object) throws SQLException {
+        execute("INSERT INTO FACTURA (" + COLUMNS + ") VALUES (?, ?, ?, ?, ?, ?, ?)",
+                object.getIdFactura(), date(object.getFecha()),
+                object.getNumeroPedido(), object.getMetodoPago(),
+                object.getTotal(), object.getDescuento(), object.getIdUsuario());
+    }
+
+    private void insertLines(Factura object)
+            throws SQLException {
+        if (object.getLineaFactura() == null || object.getLineaFactura().isEmpty()) {
+            return;
+        }
+        List<Object[]> parameters = new ArrayList<>();
+        for (LineaFactura line : object.getLineaFactura()) {
+            line.setIdFactura(object.getIdFactura());
+            parameters.add(new Object[] {line.getNumLineaFactura(), line.getCantidad(),
+                    line.getPrecioUnitario(), object.getIdFactura()});
+        }
+        connectionDB.executeBatch("INSERT INTO LINEA_FACTURA (" + LINE_COLUMNS
+                + ") VALUES (?, ?, ?, ?)", parameters);
+    }
+
+    private void deleteLines(String idFactura)
+            throws SQLException {
+        execute("DELETE FROM LINEA_FACTURA WHERE IDFACTURA = ?", idFactura);
+    }
+
+    private List<LineaFactura> queryLines(String idFactura)
+            throws SQLException {
+        return connectionDB.query("SELECT " + LINE_COLUMNS
+                + " FROM LINEA_FACTURA WHERE IDFACTURA = ? "
+                + "ORDER BY NUMLINEAFACTURA", rows -> {
+                    LineaFactura line = new LineaFactura();
+                    line.setNumLineaFactura(rows.getInt("NUMLINEAFACTURA"));
+                    line.setCantidad(rows.getInt("CANTIDAD"));
+                    line.setPrecioUnitario(rows.getDouble("PRECIO_UNITARIO"));
+                    line.setIdFactura(rows.getString("IDFACTURA"));
+                    return line;
+                }, idFactura);
+    }
+
     private int execute(String sql, Object... parameters) {
-        try (Connection connection = connectionDB.connect();
-                PreparedStatement statement = connection.prepareStatement(sql)) {
-            for (int i = 0; i < parameters.length; i++) {
-                statement.setObject(i + 1, parameters[i]);
-            }
-            return statement.executeUpdate();
+        try {
+            return connectionDB.executeUpdate(sql, parameters);
         } catch (SQLException exception) {
             throw error(sql, exception);
-        } finally {
-            closeConnection();
         }
     }
 
-    /** Ejecuta una consulta y convierte sus filas en objetos Factura. */
     private List<Factura> query(String sql, Object parameter) {
         List<Factura> result = new ArrayList<>();
-
-        try (Connection connection = connectionDB.connect();
-                PreparedStatement statement = connection.prepareStatement(sql)) {
-            if (parameter != null) {
-                statement.setObject(1, parameter);
-            }
-            try (ResultSet rows = statement.executeQuery()) {
-                while (rows.next()) {
-                    Factura item = new Factura();
-                    item.setIdFactura(rows.getString("ID_FACTURA"));
-                    item.setFecha(rows.getDate("FECHA"));
-                    item.setNumeroPedido(rows.getInt("NUMERO_PEDIDO"));
-                    item.setMetodoPago(rows.getString("METODO_PAGO"));
-                    item.setTotal(rows.getDouble("TOTAL"));
-                    item.setDescuento(rows.getDouble("DESCUENTO"));
-                    result.add(item);
-                }
-            }
+        try {
+            result = connectionDB.query(sql, rows -> {
+                Factura item = new Factura();
+                item.setIdFactura(rows.getString("IDFACTURA"));
+                item.setFecha(rows.getDate("FECHA"));
+                item.setNumeroPedido(rows.getInt("NUMEROPEDIDO"));
+                item.setMetodoPago(rows.getString("METODOPAGO"));
+                item.setTotal(rows.getDouble("TOTAL"));
+                item.setDescuento(rows.getDouble("DESCUENTO"));
+                item.setIdUsuario(rows.getString("idUsuario"));
+                item.setLineaFactura(queryLines(item.getIdFactura()));
+                return item;
+            }, parameter);
         } catch (SQLException exception) {
             throw error(sql, exception);
-        } finally {
-            closeConnection();
         }
         return result;
     }
 
-    /**
-     * Ejecuta una consulta agregada que devuelve un entero.
-     *
-     * @param sql sentencia SQL agregada
-     * @return valor agregado
-     */
     private int aggregate(String sql) {
-        try (Connection connection = connectionDB.connect();
-                PreparedStatement statement = connection.prepareStatement(sql);
-                ResultSet rows = statement.executeQuery()) {
-            return rows.next() ? rows.getInt(1) : 0;
+        try {
+            return connectionDB.aggregate(sql);
         } catch (SQLException exception) {
             throw error(sql, exception);
-        } finally {
-            closeConnection();
         }
     }
 
-    /** Convierte una fecha Java a una fecha SQL. */
     private Date date(java.util.Date value) {
         return value == null ? null : new Date(value.getTime());
     }
 
-    /** Cierra la conexión administrada por el DAO. */
-    private void closeConnection() {
-        try {
-            connectionDB.close();
-        } catch (SQLException exception) {
-            throw error("close connection", exception);
-        }
-    }
-
-    /** Construye una excepción uniforme para errores de base de datos. */
     private IllegalStateException error(String sql, SQLException exception) {
         return new IllegalStateException(
                 "Database operation failed: " + sql, exception);

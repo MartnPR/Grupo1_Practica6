@@ -8,6 +8,18 @@ public class Ticket {
     private Date fechaGeneracion;
     private boolean valido;
     private BitMatrix codigoQR;
+    private Factura factura;
+
+    /**
+     * 1. Nombre: idFactura.
+     * 2. Cinco razones para incluirlo: representa la FK idfactura del DDL;
+     * permite insertar la relación ticket-factura; permite actualizarla;
+     * permite recuperarla en consultas; mantiene completo el mapeo de TICKET.
+     * 3. Cinco razones por las que no puede omitirse: la columna es parte de
+     * TICKET; omitirla rompe la correspondencia DTO-DDL; INSERT perdería la FK;
+     * UPDATE no podría conservar la relación; SELECT devolvería datos incompletos.
+     */
+    private String idFactura;
 
     public Ticket() {
     }
@@ -49,6 +61,22 @@ public class Ticket {
 
     public void setCodigoQR(BitMatrix codigoQR) {
         this.codigoQR = codigoQR;
+    }
+
+    public Factura getFactura() {
+        return factura;
+    }
+
+    public void setFactura(Factura factura) {
+        this.factura = factura;
+    }
+
+    public String getIdFactura() {
+        return idFactura;
+    }
+
+    public void setIdFactura(String idFactura) {
+        this.idFactura = idFactura;
     }
 
     

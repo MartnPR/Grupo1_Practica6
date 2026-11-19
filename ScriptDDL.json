@@ -1,0 +1,21 @@
+[{
+  "script_creacion": "CREATE TABLE alimento (\n    idalimento INTEGER NOT NULL,\n    nombre VARCHAR(160) NOT NULL,\n    tipo VARCHAR(80) NOT NULL,\n    descripcion VARCHAR(1000) NOT NULL,\n    cantidad_en_stock INTEGER NOT NULL,\n    precio_unitario NUMERIC(12,2) NOT NULL,\n    CHECK ((cantidad_en_stock >= 0)),\n    CHECK ((precio_unitario >= (0)::numeric)),\n    PRIMARY KEY (idalimento)\n);"
+}, {
+  "script_creacion": "CREATE TABLE estudiante (\n    idusuario VARCHAR(16) NOT NULL,\n    codigo_unico INTEGER NOT NULL,\n    PRIMARY KEY (idusuario),\n    UNIQUE (codigo_unico),\n    FOREIGN KEY (idusuario) REFERENCES usuario(idusuario) ON DELETE CASCADE\n);"
+}, {
+  "script_creacion": "CREATE TABLE factura (\n    idfactura VARCHAR(100) NOT NULL,\n    fecha DATE NOT NULL,\n    numeropedido INTEGER NOT NULL,\n    metodopago VARCHAR(80) NOT NULL,\n    total NUMERIC(12,2) NOT NULL,\n    descuento NUMERIC(12,2) NOT NULL,\n    idUsuario VARCHAR(16),\n    CHECK ((total >= (0)::numeric)),\n    CHECK ((descuento >= (0)::numeric)),\n    PRIMARY KEY (idfactura),\n    FOREIGN KEY (\"idUsuario\") REFERENCES usuario(idusuario) ON UPDATE CASCADE ON DELETE CASCADE\n);"
+}, {
+  "script_creacion": "CREATE TABLE linea_factura (\n    numlineafactura INTEGER NOT NULL,\n    cantidad INTEGER NOT NULL,\n    precio_unitario NUMERIC(12,2) NOT NULL,\n    idfactura VARCHAR(20),\n    CHECK ((cantidad > 0)),\n    CHECK ((precio_unitario >= (0)::numeric)),\n    PRIMARY KEY (numlineafactura),\n    FOREIGN KEY (idfactura) REFERENCES factura(idfactura) ON UPDATE CASCADE ON DELETE CASCADE\n);"
+}, {
+  "script_creacion": "CREATE TABLE mesa (\n    idmesa INTEGER NOT NULL,\n    reservada BOOLEAN NOT NULL DEFAULT false,\n    PRIMARY KEY (idmesa)\n);"
+}, {
+  "script_creacion": "CREATE TABLE profesor (\n    idusuario VARCHAR(16) NOT NULL,\n    cedula VARCHAR(10) NOT NULL,\n    PRIMARY KEY (idusuario),\n    UNIQUE (cedula),\n    FOREIGN KEY (idusuario) REFERENCES usuario(idusuario) ON DELETE CASCADE\n);"
+}, {
+  "script_creacion": "CREATE TABLE reporte (\n    idreporte VARCHAR(100) NOT NULL,\n    fecha_generacion DATE NOT NULL,\n    franja_horaria VARCHAR(80) NOT NULL,\n    graficos BOOLEAN NOT NULL,\n    descripcion VARCHAR(2000) NOT NULL,\n    PRIMARY KEY (idreporte)\n);"
+}, {
+  "script_creacion": "CREATE TABLE reserva (\n    idreserva INTEGER NOT NULL,\n    fecha_creacion DATE NOT NULL,\n    franja_horaria VARCHAR(80) NOT NULL,\n    idUsuario VARCHAR(100),\n    idMesa INTEGER,\n    PRIMARY KEY (idreserva),\n    FOREIGN KEY (\"idMesa\") REFERENCES mesa(idmesa),\n    FOREIGN KEY (\"idUsuario\") REFERENCES usuario(idusuario) ON UPDATE CASCADE ON DELETE CASCADE\n);"
+}, {
+  "script_creacion": "CREATE TABLE ticket (\n    idticket INTEGER NOT NULL,\n    fecha_generacion TIMESTAMP WITHOUT TIME ZONE NOT NULL,\n    valido BOOLEAN NOT NULL,\n    codigo_qr BYTEA,\n    idfactura VARCHAR(100),\n    PRIMARY KEY (idticket),\n    FOREIGN KEY (idfactura) REFERENCES factura(idfactura) ON UPDATE CASCADE ON DELETE CASCADE\n);"
+}, {
+  "script_creacion": "CREATE TABLE usuario (\n    idusuario VARCHAR(16) NOT NULL,\n    nombre VARCHAR(100) NOT NULL,\n    apellido VARCHAR(100),\n    contrasenia VARCHAR(100) NOT NULL,\n    tipo_usuario VARCHAR(20) NOT NULL,\n    PRIMARY KEY (idusuario)\n);"
+}]

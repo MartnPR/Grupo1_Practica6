@@ -1,9 +1,6 @@
 package pkDataAccess.pkDAO;
 
-import java.sql.Connection;
 import java.sql.Date;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,9 +13,8 @@ import pkDataAccess.pkIDataAccess.IReporteDataHelper;
 public class ReporteDAO implements IReporteDataHelper {
 
     private final ConnectionDB connectionDB;
-    private static final String COLUMNS = "ID_REPORTE, FECHA_GENERACION, "
-            + "FRANJA_HORARIA, GRAFICOS, DESCRIPCION, TOTAL_VENTAS, "
-            + "TOTAL_PEDIDOS, TOTAL_RESERVAS";
+    private static final String COLUMNS = "IDREPORTE, FECHA_GENERACION, "
+            + "FRANJA_HORARIA, GRAFICOS, DESCRIPCION";
 
     /** Crea un DAO usando la configuración predeterminada de Food4All. */
     public ReporteDAO() {
@@ -40,20 +36,18 @@ public class ReporteDAO implements IReporteDataHelper {
     /** Inserta un reporte en la base de datos. */
     @Override
     public void agregar(Reporte object) {
-        execute("INSERT INTO REPORTE (ID_REPORTE, FECHA_GENERACION, "
-                + "FRANJA_HORARIA, GRAFICOS, DESCRIPCION, TOTAL_VENTAS, "
-                + "TOTAL_PEDIDOS, TOTAL_RESERVAS) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        execute("INSERT INTO REPORTE (IDREPORTE, FECHA_GENERACION, "
+                + "FRANJA_HORARIA, GRAFICOS, DESCRIPCION) VALUES (?, ?, ?, ?, ?)",
                 object.getIdReporte(), date(object.getFechaGeneracion()),
                 object.getFranjaHoraria(), object.isGraficos(),
-                object.getDescripcion(), object.getTotalVentas(),
-                object.getTotalPedidos(), object.getTotalReservas());
+                object.getDescripcion());
     }
 
     /** Busca un reporte por su identificador. */
     @Override
     public Reporte buscarPorId(String id) {
         List<Reporte> result = query(
-                "SELECT " + COLUMNS + " FROM REPORTE WHERE ID_REPORTE = ?", id);
+                "SELECT " + COLUMNS + " FROM REPORTE WHERE IDREPORTE = ?", id);
         return result.isEmpty() ? null : result.get(0);
     }
 
@@ -61,20 +55,17 @@ public class ReporteDAO implements IReporteDataHelper {
     @Override
     public List<Reporte> leerTodos() {
         return query("SELECT " + COLUMNS
-                + " FROM REPORTE ORDER BY ID_REPORTE", null);
+                + " FROM REPORTE ORDER BY IDREPORTE", null);
     }
 
     /** Actualiza los datos de un reporte. */
     @Override
     public boolean actualizar(Reporte object) {
         return execute("UPDATE REPORTE SET FECHA_GENERACION = ?, "
-                + "FRANJA_HORARIA = ?, GRAFICOS = ?, DESCRIPCION = ?, "
-                + "TOTAL_VENTAS = ?, TOTAL_PEDIDOS = ?, TOTAL_RESERVAS = ? "
-                + "WHERE ID_REPORTE = ?",
+                + "FRANJA_HORARIA = ?, GRAFICOS = ?, DESCRIPCION = ? "
+                + "WHERE IDREPORTE = ?",
                 date(object.getFechaGeneracion()), object.getFranjaHoraria(),
                 object.isGraficos(), object.getDescripcion(),
-                object.getTotalVentas(), object.getTotalPedidos(),
-                object.getTotalReservas(),
                 object.getIdReporte()) > 0;
     }
 
@@ -83,7 +74,7 @@ public class ReporteDAO implements IReporteDataHelper {
     public Reporte eliminar(String id) {
         Reporte result = buscarPorId(id);
         if (result != null) {
-            execute("DELETE FROM REPORTE WHERE ID_REPORTE = ?", id);
+            execute("DELETE FROM REPORTE WHERE IDREPORTE = ?", id);
         }
         return result;
     }
@@ -113,16 +104,10 @@ public class ReporteDAO implements IReporteDataHelper {
 
     /** Ejecuta una sentencia de modificación parametrizada. */
     private int execute(String sql, Object... parameters) {
-        try (Connection connection = connectionDB.connect();
-                PreparedStatement statement = connection.prepareStatement(sql)) {
-            for (int i = 0; i < parameters.length; i++) {
-                statement.setObject(i + 1, parameters[i]);
-            }
-            return statement.executeUpdate();
+        try {
+            return connectionDB.executeUpdate(sql, parameters);
         } catch (SQLException exception) {
             throw error(sql, exception);
-        } finally {
-            closeConnection();
         }
     }
 
@@ -130,29 +115,18 @@ public class ReporteDAO implements IReporteDataHelper {
     private List<Reporte> query(String sql, Object parameter) {
         List<Reporte> result = new ArrayList<>();
 
-        try (Connection connection = connectionDB.connect();
-                PreparedStatement statement = connection.prepareStatement(sql)) {
-            if (parameter != null) {
-                statement.setObject(1, parameter);
-            }
-            try (ResultSet rows = statement.executeQuery()) {
-                while (rows.next()) {
+        try {
+            result = connectionDB.query(sql, rows -> {
                     Reporte item = new Reporte();
-                    item.setIdReporte(rows.getString("ID_REPORTE"));
+                    item.setIdReporte(rows.getString("IDREPORTE"));
                     item.setFechaGeneracion(rows.getDate("FECHA_GENERACION"));
                     item.setFranjaHoraria(rows.getString("FRANJA_HORARIA"));
                     item.setGraficos(rows.getBoolean("GRAFICOS"));
                     item.setDescripcion(rows.getString("DESCRIPCION"));
-                    item.setTotalVentas(rows.getDouble("TOTAL_VENTAS"));
-                    item.setTotalPedidos(rows.getInt("TOTAL_PEDIDOS"));
-                    item.setTotalReservas(rows.getInt("TOTAL_RESERVAS"));
-                    result.add(item);
-                }
-            }
+                    return item;
+                }, parameter);
         } catch (SQLException exception) {
             throw error(sql, exception);
-        } finally {
-            closeConnection();
         }
         return result;
     }
@@ -164,14 +138,10 @@ public class ReporteDAO implements IReporteDataHelper {
      * @return valor agregado
      */
     private int aggregate(String sql) {
-        try (Connection connection = connectionDB.connect();
-                PreparedStatement statement = connection.prepareStatement(sql);
-                ResultSet rows = statement.executeQuery()) {
-            return rows.next() ? rows.getInt(1) : 0;
+        try {
+            return connectionDB.aggregate(sql);
         } catch (SQLException exception) {
             throw error(sql, exception);
-        } finally {
-            closeConnection();
         }
     }
 
@@ -181,14 +151,6 @@ public class ReporteDAO implements IReporteDataHelper {
     }
 
     /** Cierra la conexión administrada por el DAO. */
-    private void closeConnection() {
-        try {
-            connectionDB.close();
-        } catch (SQLException exception) {
-            throw error("close connection", exception);
-        }
-    }
-
     /** Construye una excepción uniforme para errores de base de datos. */
     private IllegalStateException error(String sql, SQLException exception) {
         return new IllegalStateException(

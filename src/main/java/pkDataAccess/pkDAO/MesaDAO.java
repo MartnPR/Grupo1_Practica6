@@ -1,8 +1,5 @@
 package pkDataAccess.pkDAO;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +39,7 @@ public class MesaDAO implements IMesaDataHelper {
      */
     @Override
     public void agregar(Mesa object) {
-        execute("INSERT INTO MESA (ID_MESA, RESERVADA) VALUES (?, ?)",
+        execute("INSERT INTO MESA (IDMESA, RESERVADA) VALUES (?, ?)",
                 object.getIdMesa(), object.isReservada());
     }
 
@@ -55,7 +52,7 @@ public class MesaDAO implements IMesaDataHelper {
     @Override
     public Mesa buscarPorId(Integer id) {
         List<Mesa> result = query(
-                "SELECT ID_MESA, RESERVADA FROM MESA WHERE ID_MESA = ?", id);
+                "SELECT IDMESA, RESERVADA FROM MESA WHERE IDMESA = ?", id);
         return result.isEmpty() ? null : result.get(0);
     }
 
@@ -66,7 +63,7 @@ public class MesaDAO implements IMesaDataHelper {
      */
     @Override
     public List<Mesa> leerTodos() {
-        return query("SELECT ID_MESA, RESERVADA FROM MESA ORDER BY ID_MESA", null);
+        return query("SELECT IDMESA, RESERVADA FROM MESA ORDER BY IDMESA", null);
     }
 
     /**
@@ -77,7 +74,7 @@ public class MesaDAO implements IMesaDataHelper {
      */
     @Override
     public boolean actualizar(Mesa object) {
-        return execute("UPDATE MESA SET RESERVADA = ? WHERE ID_MESA = ?",
+        return execute("UPDATE MESA SET RESERVADA = ? WHERE IDMESA = ?",
                 object.isReservada(), object.getIdMesa()) > 0;
     }
 
@@ -91,7 +88,7 @@ public class MesaDAO implements IMesaDataHelper {
     public Mesa eliminar(Integer id) {
         Mesa result = buscarPorId(id);
         if (result != null) {
-            execute("DELETE FROM MESA WHERE ID_MESA = ?", id);
+            execute("DELETE FROM MESA WHERE IDMESA = ?", id);
         }
         return result;
     }
@@ -104,8 +101,8 @@ public class MesaDAO implements IMesaDataHelper {
      */
     @Override
     public List<Mesa> buscarPorEstado(boolean reservado) {
-        return query("SELECT ID_MESA, RESERVADA FROM MESA "
-                + "WHERE RESERVADA = ? ORDER BY ID_MESA", reservado);
+        return query("SELECT IDMESA, RESERVADA FROM MESA "
+                + "WHERE RESERVADA = ? ORDER BY IDMESA", reservado);
     }
 
     /**
@@ -125,16 +122,10 @@ public class MesaDAO implements IMesaDataHelper {
      * @return cantidad de filas afectadas
      */
     private int execute(String sql, Object... parameters) {
-        try (Connection connection = connectionDB.connect();
-                PreparedStatement statement = connection.prepareStatement(sql)) {
-            for (int i = 0; i < parameters.length; i++) {
-                statement.setObject(i + 1, parameters[i]);
-            }
-            return statement.executeUpdate();
+        try {
+            return connectionDB.executeUpdate(sql, parameters);
         } catch (SQLException exception) {
             throw error(sql, exception);
-        } finally {
-            closeConnection();
         }
     }
 
@@ -148,23 +139,12 @@ public class MesaDAO implements IMesaDataHelper {
     private List<Mesa> query(String sql, Object parameter) {
         List<Mesa> result = new ArrayList<>();
 
-        try (Connection connection = connectionDB.connect();
-                PreparedStatement statement = connection.prepareStatement(sql)) {
-            if (parameter != null) {
-                statement.setObject(1, parameter);
-            }
-
-            try (ResultSet rows = statement.executeQuery()) {
-                while (rows.next()) {
-                    result.add(new Mesa(
-                            rows.getInt("ID_MESA"),
-                            rows.getBoolean("RESERVADA")));
-                }
-            }
+        try {
+            result = connectionDB.query(sql, rows -> new Mesa(
+                    rows.getInt("IDMESA"),
+                    rows.getBoolean("RESERVADA")), parameter);
         } catch (SQLException exception) {
             throw error(sql, exception);
-        } finally {
-            closeConnection();
         }
         return result;
     }
@@ -176,25 +156,10 @@ public class MesaDAO implements IMesaDataHelper {
      * @return valor agregado
      */
     private int aggregate(String sql) {
-        try (Connection connection = connectionDB.connect();
-                PreparedStatement statement = connection.prepareStatement(sql);
-                ResultSet rows = statement.executeQuery()) {
-            return rows.next() ? rows.getInt(1) : 0;
+        try {
+            return connectionDB.aggregate(sql);
         } catch (SQLException exception) {
             throw error(sql, exception);
-        } finally {
-            closeConnection();
-        }
-    }
-
-    /**
-     * Cierra la conexión administrada por el DAO.
-     */
-    private void closeConnection() {
-        try {
-            connectionDB.close();
-        } catch (SQLException exception) {
-            throw error("close connection", exception);
         }
     }
 

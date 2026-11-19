@@ -1,6 +1,7 @@
 package pkDataAccess.pkDTO;
 
 import java.util.Date;
+import java.util.List;
 
 public class Reserva {
     private Integer idReserva;
@@ -9,6 +10,9 @@ public class Reserva {
     private boolean cancelada;
     private Mesa mesa;
     private UsuarioPoliComedor usuario;
+    private String codigoEstudiante;
+    private String cedulaProfesor;
+    private List<Mesa> listMesa;
 
     
     public Reserva() {
@@ -68,6 +72,30 @@ public class Reserva {
 
     public void setCancelada(boolean cancelada) {
         this.cancelada = cancelada;
+    }
+
+    public String getCodigoEstudiante() {
+        return codigoEstudiante;
+    }
+
+    public void setCodigoEstudiante(String codigoEstudiante) {
+        this.codigoEstudiante = codigoEstudiante;
+    }
+
+    public String getCedulaProfesor() {
+        return cedulaProfesor;
+    }
+
+    public void setCedulaProfesor(String cedulaProfesor) {
+        this.cedulaProfesor = cedulaProfesor;
+    }
+
+    public List<Mesa> getListMesa() {
+        return listMesa;
+    }
+
+    public void setListMesa(List<Mesa> listMesa) {
+        this.listMesa = listMesa;
     }
 
 
