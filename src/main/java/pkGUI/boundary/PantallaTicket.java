@@ -4,7 +4,6 @@ import pkBusinessLogic.GestorTicket;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.nio.file.Path;
-import java.util.Objects;
 import javax.swing.JButton;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
@@ -14,9 +13,10 @@ public final class PantallaTicket extends PantallaBase {
     private final GestorTicket controlTicket;
     private final JLabel detalle = new JLabel("Aún no se ha generado un ticket.");
 
-    public PantallaTicket(GestorTicket controlTicket) {
+    public PantallaTicket() {
         super("Ticket");
-        this.controlTicket = Objects.requireNonNull(controlTicket);
+        
+        this.controlTicket = new GestorTicket();
         JButton generar = new JButton("Generar ticket");
         generar.addActionListener(event -> ejecutarSeguro(this::generarTicket));
         JButton validar = new JButton("Validar ticket");
