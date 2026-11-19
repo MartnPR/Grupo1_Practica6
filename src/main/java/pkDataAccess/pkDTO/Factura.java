@@ -17,6 +17,7 @@ public class Factura {
     private Ticket ticket;
 
     public Factura() {
+        this.lineaFactura = new ArrayList<>();
     }
 
     public Factura(Date fecha, Integer numeroPedido, String metodoPago) {

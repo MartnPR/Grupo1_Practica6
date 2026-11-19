@@ -1,8 +1,5 @@
 package pkDataAccess.pkDAO;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -100,7 +97,7 @@ public class UsuarioPoliComedorDAO implements IUsuarioDataHelper {
         List<UsuarioPoliComedor> result = query(
                 "SELECT " + COLUMNS + FROM
                         + " WHERE e.CODIGO_UNICO = ?",
-                codigo);
+                codigoUnico(codigo));
         return result.isEmpty() ? null : result.get(0);
     }
 
@@ -125,16 +122,10 @@ public class UsuarioPoliComedorDAO implements IUsuarioDataHelper {
 
     /** Ejecuta una sentencia de modificación parametrizada. */
     private int execute(String sql, Object... parameters) {
-        try (Connection connection = connectionDB.connect();
-                PreparedStatement statement = connection.prepareStatement(sql)) {
-            for (int i = 0; i < parameters.length; i++) {
-                statement.setObject(i + 1, parameters[i]);
-            }
-            return statement.executeUpdate();
+        try {
+            return connectionDB.executeUpdate(sql, parameters);
         } catch (SQLException exception) {
             throw error(sql, exception);
-        } finally {
-            closeConnection();
         }
     }
 
@@ -142,14 +133,8 @@ public class UsuarioPoliComedorDAO implements IUsuarioDataHelper {
     private List<UsuarioPoliComedor> query(String sql, Object parameter) {
         List<UsuarioPoliComedor> result = new ArrayList<>();
 
-        try (Connection connection = connectionDB.connect();
-                PreparedStatement statement = connection.prepareStatement(sql)) {
-            if (parameter != null) {
-                statement.setObject(1, parameter);
-            }
-
-            try (ResultSet rows = statement.executeQuery()) {
-                while (rows.next()) {
+        try {
+            result = connectionDB.query(sql, rows -> {
                     UsuarioPoliComedor item = new UsuarioPoliComedor();
                     item.setIdUsuario(rows.getString("ID_USUARIO"));
                     item.setNombre(rows.getString("NOMBRE"));
@@ -157,18 +142,10 @@ public class UsuarioPoliComedorDAO implements IUsuarioDataHelper {
                     item.setContrasenia(rows.getString("CONTRASENIA"));
                     item.setTipo(rows.getString("TIPO_USUARIO"));
 
-                    String codigo = rows.getString("CODIGO_UNICO");
-                    if (item.getApellido() == null) {
-                        item.setApellido(codigo == null
-                                ? rows.getString("CEDULA") : codigo);
-                    }
-                    result.add(item);
-                }
-            }
+                    return item;
+                }, parameter);
         } catch (SQLException exception) {
             throw error(sql, exception);
-        } finally {
-            closeConnection();
         }
         return result;
     }
@@ -180,26 +157,23 @@ public class UsuarioPoliComedorDAO implements IUsuarioDataHelper {
      * @return valor agregado
      */
     private int aggregate(String sql) {
-        try (Connection connection = connectionDB.connect();
-                PreparedStatement statement = connection.prepareStatement(sql);
-                ResultSet rows = statement.executeQuery()) {
-            return rows.next() ? rows.getInt(1) : 0;
+        try {
+            return connectionDB.aggregate(sql);
         } catch (SQLException exception) {
             throw error(sql, exception);
-        } finally {
-            closeConnection();
+        }
+    }
+
+    private Integer codigoUnico(String codigo) {
+        try {
+            return Integer.valueOf(codigo);
+        } catch (NumberFormatException exception) {
+            throw new IllegalArgumentException(
+                    "codigoUnico must be a valid integer", exception);
         }
     }
 
     /** Cierra la conexión administrada por el DAO. */
-    private void closeConnection() {
-        try {
-            connectionDB.close();
-        } catch (SQLException exception) {
-            throw error("close connection", exception);
-        }
-    }
-
     /** Construye una excepción uniforme para errores de base de datos. */
     private IllegalStateException error(String sql, SQLException exception) {
         return new IllegalStateException(

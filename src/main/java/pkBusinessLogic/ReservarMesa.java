@@ -68,10 +68,9 @@ public class ReservarMesa {
          * esta relación para que cada Reserva tenga
          * una sola Mesa.
          */
-        List<Mesa> mesas = new ArrayList<>();
-        mesas.add(mesa);
+        
 
-        reserva.setListMesa(mesas);
+        reserva.setMesa(mesa);
         reserva.setUsuario(usuario);
 
         /*

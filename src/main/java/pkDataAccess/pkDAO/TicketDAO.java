@@ -1,11 +1,9 @@
 package pkDataAccess.pkDAO;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import com.google.zxing.common.BitMatrix;
 import pkDataAccess.pkDTO.Ticket;
 import pkDataAccess.pkIDataAccess.ITicketDataHelper;
 
@@ -63,7 +61,7 @@ public class TicketDAO implements ITicketDataHelper {
     @Override
     public Ticket buscarPorId(Integer id) {
         List<Ticket> result = query(
-                "SELECT ID_TICKET, FECHA_GENERACION, VALIDO "
+                "SELECT ID_TICKET, FECHA_GENERACION, VALIDO, CODIGO_QR "
                         + "FROM TICKET WHERE ID_TICKET = ?",
                 id);
         return result.isEmpty() ? null : result.get(0);
@@ -76,7 +74,7 @@ public class TicketDAO implements ITicketDataHelper {
      */
     @Override
     public List<Ticket> leerTodos() {
-        return query("SELECT ID_TICKET, FECHA_GENERACION, VALIDO "
+        return query("SELECT ID_TICKET, FECHA_GENERACION, VALIDO, CODIGO_QR "
                 + "FROM TICKET ORDER BY ID_TICKET", null);
     }
 
@@ -88,10 +86,15 @@ public class TicketDAO implements ITicketDataHelper {
      */
     @Override
     public boolean actualizar(Ticket object) {
-        return execute("UPDATE TICKET SET FECHA_GENERACION = ?, VALIDO = ? "
+        return execute("UPDATE TICKET SET FECHA_GENERACION = ?, VALIDO = ?, "
+                + "CODIGO_QR = ? "
                 + "WHERE ID_TICKET = ?",
                 object.getFechaGeneracion(),
                 object.isValido(),
+                object.getCodigoQR() == null
+                        ? null
+                        : object.getCodigoQR().toString()
+                                .getBytes(java.nio.charset.StandardCharsets.UTF_8),
                 object.getIdTicket()) > 0;
     }
 
@@ -118,7 +121,7 @@ public class TicketDAO implements ITicketDataHelper {
      */
     @Override
     public List<Ticket> buscarPorValido(boolean valido) {
-        return query("SELECT ID_TICKET, FECHA_GENERACION, VALIDO "
+        return query("SELECT ID_TICKET, FECHA_GENERACION, VALIDO, CODIGO_QR "
                 + "FROM TICKET WHERE VALIDO = ? ORDER BY ID_TICKET", valido);
     }
 
@@ -139,16 +142,10 @@ public class TicketDAO implements ITicketDataHelper {
      * @return cantidad de filas afectadas
      */
     private int execute(String sql, Object... parameters) {
-        try (Connection connection = connectionDB.connect();
-                PreparedStatement statement = connection.prepareStatement(sql)) {
-            for (int i = 0; i < parameters.length; i++) {
-                statement.setObject(i + 1, parameters[i]);
-            }
-            return statement.executeUpdate();
+        try {
+            return connectionDB.executeUpdate(sql, parameters);
         } catch (SQLException exception) {
             throw error(sql, exception);
-        } finally {
-            closeConnection();
         }
     }
 
@@ -162,27 +159,46 @@ public class TicketDAO implements ITicketDataHelper {
     private List<Ticket> query(String sql, Object parameter) {
         List<Ticket> result = new ArrayList<>();
 
-        try (Connection connection = connectionDB.connect();
-                PreparedStatement statement = connection.prepareStatement(sql)) {
-            if (parameter != null) {
-                statement.setObject(1, parameter);
-            }
-
-            try (ResultSet rows = statement.executeQuery()) {
-                while (rows.next()) {
+        try {
+            result = connectionDB.query(sql, rows -> {
                     Ticket item = new Ticket();
                     item.setIdTicket(rows.getInt("ID_TICKET"));
                     item.setFechaGeneracion(rows.getTimestamp("FECHA_GENERACION"));
                     item.setValido(rows.getBoolean("VALIDO"));
-                    result.add(item);
-                }
-            }
+                    item.setCodigoQR(decodeCodigoQR(rows.getBytes("CODIGO_QR")));
+                    return item;
+                }, parameter);
         } catch (SQLException exception) {
             throw error(sql, exception);
-        } finally {
-            closeConnection();
         }
         return result;
+    }
+
+    private BitMatrix decodeCodigoQR(byte[] value) {
+        if (value == null) {
+            return null;
+        }
+        String serialized = new String(value, java.nio.charset.StandardCharsets.UTF_8);
+        String[] rows = serialized.split("\\R", -1);
+        if (rows.length > 0 && rows[rows.length - 1].isEmpty()) {
+            rows = java.util.Arrays.copyOf(rows, rows.length - 1);
+        }
+        if (rows.length == 0 || rows[0].length() % 2 != 0) {
+            throw new IllegalStateException("Invalid CODIGO_QR data");
+        }
+        int width = rows[0].length() / 2;
+        BitMatrix matrix = new BitMatrix(width, rows.length);
+        for (int y = 0; y < rows.length; y++) {
+            if (rows[y].length() != rows[0].length()) {
+                throw new IllegalStateException("Invalid CODIGO_QR data");
+            }
+            for (int x = 0; x < width; x++) {
+                if (rows[y].charAt(x * 2) == 'X') {
+                    matrix.set(x, y);
+                }
+            }
+        }
+        return matrix;
     }
 
     /**
@@ -192,28 +208,16 @@ public class TicketDAO implements ITicketDataHelper {
      * @return valor agregado
      */
     private int aggregate(String sql) {
-        try (Connection connection = connectionDB.connect();
-                PreparedStatement statement = connection.prepareStatement(sql);
-                ResultSet rows = statement.executeQuery()) {
-            return rows.next() ? rows.getInt(1) : 0;
+        try {
+            return connectionDB.aggregate(sql);
         } catch (SQLException exception) {
             throw error(sql, exception);
-        } finally {
-            closeConnection();
         }
     }
 
     /**
      * Cierra la conexión administrada por el DAO.
      */
-    private void closeConnection() {
-        try {
-            connectionDB.close();
-        } catch (SQLException exception) {
-            throw error("close connection", exception);
-        }
-    }
-
     /**
      * Construye una excepción uniforme para errores de base de datos.
      *

@@ -1,9 +1,6 @@
 package pkDataAccess.pkDAO;
 
-import java.sql.Connection;
 import java.sql.Date;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -113,16 +110,10 @@ public class ReporteDAO implements IReporteDataHelper {
 
     /** Ejecuta una sentencia de modificación parametrizada. */
     private int execute(String sql, Object... parameters) {
-        try (Connection connection = connectionDB.connect();
-                PreparedStatement statement = connection.prepareStatement(sql)) {
-            for (int i = 0; i < parameters.length; i++) {
-                statement.setObject(i + 1, parameters[i]);
-            }
-            return statement.executeUpdate();
+        try {
+            return connectionDB.executeUpdate(sql, parameters);
         } catch (SQLException exception) {
             throw error(sql, exception);
-        } finally {
-            closeConnection();
         }
     }
 
@@ -130,13 +121,8 @@ public class ReporteDAO implements IReporteDataHelper {
     private List<Reporte> query(String sql, Object parameter) {
         List<Reporte> result = new ArrayList<>();
 
-        try (Connection connection = connectionDB.connect();
-                PreparedStatement statement = connection.prepareStatement(sql)) {
-            if (parameter != null) {
-                statement.setObject(1, parameter);
-            }
-            try (ResultSet rows = statement.executeQuery()) {
-                while (rows.next()) {
+        try {
+            result = connectionDB.query(sql, rows -> {
                     Reporte item = new Reporte();
                     item.setIdReporte(rows.getString("ID_REPORTE"));
                     item.setFechaGeneracion(rows.getDate("FECHA_GENERACION"));
@@ -146,13 +132,10 @@ public class ReporteDAO implements IReporteDataHelper {
                     item.setTotalVentas(rows.getDouble("TOTAL_VENTAS"));
                     item.setTotalPedidos(rows.getInt("TOTAL_PEDIDOS"));
                     item.setTotalReservas(rows.getInt("TOTAL_RESERVAS"));
-                    result.add(item);
-                }
-            }
+                    return item;
+                }, parameter);
         } catch (SQLException exception) {
             throw error(sql, exception);
-        } finally {
-            closeConnection();
         }
         return result;
     }
@@ -164,14 +147,10 @@ public class ReporteDAO implements IReporteDataHelper {
      * @return valor agregado
      */
     private int aggregate(String sql) {
-        try (Connection connection = connectionDB.connect();
-                PreparedStatement statement = connection.prepareStatement(sql);
-                ResultSet rows = statement.executeQuery()) {
-            return rows.next() ? rows.getInt(1) : 0;
+        try {
+            return connectionDB.aggregate(sql);
         } catch (SQLException exception) {
             throw error(sql, exception);
-        } finally {
-            closeConnection();
         }
     }
 
@@ -181,14 +160,6 @@ public class ReporteDAO implements IReporteDataHelper {
     }
 
     /** Cierra la conexión administrada por el DAO. */
-    private void closeConnection() {
-        try {
-            connectionDB.close();
-        } catch (SQLException exception) {
-            throw error("close connection", exception);
-        }
-    }
-
     /** Construye una excepción uniforme para errores de base de datos. */
     private IllegalStateException error(String sql, SQLException exception) {
         return new IllegalStateException(

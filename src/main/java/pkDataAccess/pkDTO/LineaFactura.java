@@ -6,6 +6,7 @@ public class LineaFactura {
     private int cantidad;
     private double precioUnitario;
     private double subtotalAlimento;
+    private String idFactura;
     private Alimento alimento;
 
     
@@ -24,6 +25,14 @@ public class LineaFactura {
 
     public void setNumLineaFactura(Integer numLineaFactura) {
         this.numLineaFactura = numLineaFactura;
+    }
+
+    public String getIdFactura() {
+        return idFactura;
+    }
+
+    public void setIdFactura(String idFactura) {
+        this.idFactura = idFactura;
     }
 
     public int getCantidad() {
