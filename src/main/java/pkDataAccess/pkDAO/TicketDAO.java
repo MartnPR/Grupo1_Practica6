@@ -41,15 +41,16 @@ public class TicketDAO implements ITicketDataHelper {
     @Override
     public void agregar(Ticket object) {
         execute("INSERT INTO TICKET "
-                + "(ID_TICKET, FECHA_GENERACION, VALIDO, CODIGO_QR) "
-                + "VALUES (?, ?, ?, ?)",
+                + "(IDTICKET, FECHA_GENERACION, VALIDO, CODIGO_QR, IDFACTURA) "
+                + "VALUES (?, ?, ?, ?, ?)",
                 object.getIdTicket(),
                 object.getFechaGeneracion(),
                 object.isValido(),
                 object.getCodigoQR() == null
                         ? null
                         : object.getCodigoQR().toString()
-                                .getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                                .getBytes(java.nio.charset.StandardCharsets.UTF_8),
+                object.getIdFactura());
     }
 
     /**
@@ -61,8 +62,8 @@ public class TicketDAO implements ITicketDataHelper {
     @Override
     public Ticket buscarPorId(Integer id) {
         List<Ticket> result = query(
-                "SELECT ID_TICKET, FECHA_GENERACION, VALIDO, CODIGO_QR "
-                        + "FROM TICKET WHERE ID_TICKET = ?",
+                "SELECT IDTICKET, FECHA_GENERACION, VALIDO, CODIGO_QR, IDFACTURA "
+                        + "FROM TICKET WHERE IDTICKET = ?",
                 id);
         return result.isEmpty() ? null : result.get(0);
     }
@@ -74,8 +75,8 @@ public class TicketDAO implements ITicketDataHelper {
      */
     @Override
     public List<Ticket> leerTodos() {
-        return query("SELECT ID_TICKET, FECHA_GENERACION, VALIDO, CODIGO_QR "
-                + "FROM TICKET ORDER BY ID_TICKET", null);
+        return query("SELECT IDTICKET, FECHA_GENERACION, VALIDO, CODIGO_QR, IDFACTURA "
+                + "FROM TICKET ORDER BY IDTICKET", null);
     }
 
     /**
@@ -87,14 +88,15 @@ public class TicketDAO implements ITicketDataHelper {
     @Override
     public boolean actualizar(Ticket object) {
         return execute("UPDATE TICKET SET FECHA_GENERACION = ?, VALIDO = ?, "
-                + "CODIGO_QR = ? "
-                + "WHERE ID_TICKET = ?",
+                + "CODIGO_QR = ?, IDFACTURA = ? "
+                + "WHERE IDTICKET = ?",
                 object.getFechaGeneracion(),
                 object.isValido(),
                 object.getCodigoQR() == null
                         ? null
                         : object.getCodigoQR().toString()
                                 .getBytes(java.nio.charset.StandardCharsets.UTF_8),
+                object.getIdFactura(),
                 object.getIdTicket()) > 0;
     }
 
@@ -108,7 +110,7 @@ public class TicketDAO implements ITicketDataHelper {
     public Ticket eliminar(Integer id) {
         Ticket result = buscarPorId(id);
         if (result != null) {
-            execute("DELETE FROM TICKET WHERE ID_TICKET = ?", id);
+            execute("DELETE FROM TICKET WHERE IDTICKET = ?", id);
         }
         return result;
     }
@@ -121,8 +123,8 @@ public class TicketDAO implements ITicketDataHelper {
      */
     @Override
     public List<Ticket> buscarPorValido(boolean valido) {
-        return query("SELECT ID_TICKET, FECHA_GENERACION, VALIDO, CODIGO_QR "
-                + "FROM TICKET WHERE VALIDO = ? ORDER BY ID_TICKET", valido);
+        return query("SELECT IDTICKET, FECHA_GENERACION, VALIDO, CODIGO_QR, IDFACTURA "
+                + "FROM TICKET WHERE VALIDO = ? ORDER BY IDTICKET", valido);
     }
 
     /**
@@ -162,9 +164,10 @@ public class TicketDAO implements ITicketDataHelper {
         try {
             result = connectionDB.query(sql, rows -> {
                     Ticket item = new Ticket();
-                    item.setIdTicket(rows.getInt("ID_TICKET"));
+                    item.setIdTicket(rows.getInt("IDTICKET"));
                     item.setFechaGeneracion(rows.getTimestamp("FECHA_GENERACION"));
                     item.setValido(rows.getBoolean("VALIDO"));
+                    item.setIdFactura(rows.getString("IDFACTURA"));
                     item.setCodigoQR(decodeCodigoQR(rows.getBytes("CODIGO_QR")));
                     return item;
                 }, parameter);

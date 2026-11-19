@@ -40,7 +40,7 @@ public class AlimentoDAO implements IAlimentoDataHelper {
     @Override
     public void agregar(Alimento object) {
         String sql = "INSERT INTO ALIMENTO "
-                + "(ID_ALIMENTO, NOMBRE, TIPO, DESCRIPCION, CANTIDAD_EN_STOCK, PRECIO_UNITARIO) "
+                + "(IDALIMENTO, NOMBRE, TIPO, DESCRIPCION, CANTIDAD_EN_STOCK, PRECIO_UNITARIO) "
                 + "VALUES (?, ?, ?, ?, ?, ?)";
 
         execute(sql, object.getIdAlimento(), object.getNombre(), object.getTipo(),
@@ -56,9 +56,9 @@ public class AlimentoDAO implements IAlimentoDataHelper {
      */
     @Override
     public Alimento buscarPorId(Integer id) {
-        String sql = "SELECT ID_ALIMENTO, NOMBRE, TIPO, DESCRIPCION, "
+        String sql = "SELECT IDALIMENTO, NOMBRE, TIPO, DESCRIPCION, "
                 + "CANTIDAD_EN_STOCK, PRECIO_UNITARIO "
-                + "FROM ALIMENTO WHERE ID_ALIMENTO = ?";
+                + "FROM ALIMENTO WHERE IDALIMENTO = ?";
         List<Alimento> result = query(sql, id);
         return result.isEmpty() ? null : result.get(0);
     }
@@ -70,9 +70,9 @@ public class AlimentoDAO implements IAlimentoDataHelper {
      */
     @Override
     public List<Alimento> leerTodos() {
-        return query("SELECT ID_ALIMENTO, NOMBRE, TIPO, DESCRIPCION, "
+        return query("SELECT IDALIMENTO, NOMBRE, TIPO, DESCRIPCION, "
                 + "CANTIDAD_EN_STOCK, PRECIO_UNITARIO "
-                + "FROM ALIMENTO ORDER BY ID_ALIMENTO", null);
+                + "FROM ALIMENTO ORDER BY IDALIMENTO", null);
     }
 
     /**
@@ -84,7 +84,7 @@ public class AlimentoDAO implements IAlimentoDataHelper {
     @Override
     public boolean actualizar(Alimento object) {
         String sql = "UPDATE ALIMENTO SET NOMBRE = ?, TIPO = ?, DESCRIPCION = ?, "
-                + "CANTIDAD_EN_STOCK = ?, PRECIO_UNITARIO = ? WHERE ID_ALIMENTO = ?";
+                + "CANTIDAD_EN_STOCK = ?, PRECIO_UNITARIO = ? WHERE IDALIMENTO = ?";
 
         return execute(sql, object.getNombre(), object.getTipo(),
                 object.getDescripcion(), object.getCantidadEnStock(),
@@ -104,7 +104,7 @@ public class AlimentoDAO implements IAlimentoDataHelper {
             return null;
         }
 
-        String sql = "DELETE FROM ALIMENTO WHERE ID_ALIMENTO = ?";
+        String sql = "DELETE FROM ALIMENTO WHERE IDALIMENTO = ?";
         execute(sql, id);
         return result;
     }
@@ -117,9 +117,9 @@ public class AlimentoDAO implements IAlimentoDataHelper {
      */
     @Override
     public List<Alimento> buscarPorTipo(String categoria) {
-        return query("SELECT ID_ALIMENTO, NOMBRE, TIPO, DESCRIPCION, "
+        return query("SELECT IDALIMENTO, NOMBRE, TIPO, DESCRIPCION, "
                 + "CANTIDAD_EN_STOCK, PRECIO_UNITARIO FROM ALIMENTO "
-                + "WHERE TIPO = ? ORDER BY ID_ALIMENTO", categoria);
+                + "WHERE TIPO = ? ORDER BY IDALIMENTO", categoria);
     }
 
     /**
@@ -162,7 +162,7 @@ public class AlimentoDAO implements IAlimentoDataHelper {
         try {
             result = connectionDB.query(sql, rows -> {
                 Alimento item = new Alimento();
-                item.setIdAlimento(rows.getInt("ID_ALIMENTO"));
+                item.setIdAlimento(rows.getInt("IDALIMENTO"));
                 item.setNombre(rows.getString("NOMBRE"));
                 item.setTipo(rows.getString("TIPO"));
                 item.setDescripcion(rows.getString("DESCRIPCION"));

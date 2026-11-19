@@ -39,7 +39,7 @@ public class MesaDAO implements IMesaDataHelper {
      */
     @Override
     public void agregar(Mesa object) {
-        execute("INSERT INTO MESA (ID_MESA, RESERVADA) VALUES (?, ?)",
+        execute("INSERT INTO MESA (IDMESA, RESERVADA) VALUES (?, ?)",
                 object.getIdMesa(), object.isReservada());
     }
 
@@ -52,7 +52,7 @@ public class MesaDAO implements IMesaDataHelper {
     @Override
     public Mesa buscarPorId(Integer id) {
         List<Mesa> result = query(
-                "SELECT ID_MESA, RESERVADA FROM MESA WHERE ID_MESA = ?", id);
+                "SELECT IDMESA, RESERVADA FROM MESA WHERE IDMESA = ?", id);
         return result.isEmpty() ? null : result.get(0);
     }
 
@@ -63,7 +63,7 @@ public class MesaDAO implements IMesaDataHelper {
      */
     @Override
     public List<Mesa> leerTodos() {
-        return query("SELECT ID_MESA, RESERVADA FROM MESA ORDER BY ID_MESA", null);
+        return query("SELECT IDMESA, RESERVADA FROM MESA ORDER BY IDMESA", null);
     }
 
     /**
@@ -74,7 +74,7 @@ public class MesaDAO implements IMesaDataHelper {
      */
     @Override
     public boolean actualizar(Mesa object) {
-        return execute("UPDATE MESA SET RESERVADA = ? WHERE ID_MESA = ?",
+        return execute("UPDATE MESA SET RESERVADA = ? WHERE IDMESA = ?",
                 object.isReservada(), object.getIdMesa()) > 0;
     }
 
@@ -88,7 +88,7 @@ public class MesaDAO implements IMesaDataHelper {
     public Mesa eliminar(Integer id) {
         Mesa result = buscarPorId(id);
         if (result != null) {
-            execute("DELETE FROM MESA WHERE ID_MESA = ?", id);
+            execute("DELETE FROM MESA WHERE IDMESA = ?", id);
         }
         return result;
     }
@@ -101,8 +101,8 @@ public class MesaDAO implements IMesaDataHelper {
      */
     @Override
     public List<Mesa> buscarPorEstado(boolean reservado) {
-        return query("SELECT ID_MESA, RESERVADA FROM MESA "
-                + "WHERE RESERVADA = ? ORDER BY ID_MESA", reservado);
+        return query("SELECT IDMESA, RESERVADA FROM MESA "
+                + "WHERE RESERVADA = ? ORDER BY IDMESA", reservado);
     }
 
     /**
@@ -141,7 +141,7 @@ public class MesaDAO implements IMesaDataHelper {
 
         try {
             result = connectionDB.query(sql, rows -> new Mesa(
-                    rows.getInt("ID_MESA"),
+                    rows.getInt("IDMESA"),
                     rows.getBoolean("RESERVADA")), parameter);
         } catch (SQLException exception) {
             throw error(sql, exception);

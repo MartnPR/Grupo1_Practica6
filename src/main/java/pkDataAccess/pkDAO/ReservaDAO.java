@@ -15,8 +15,9 @@ import pkDataAccess.pkIDataAccess.IReservaDataHelper;
 public class ReservaDAO implements IReservaDataHelper {
 
     private final ConnectionDB connectionDB;
-    private static final String COLUMNS = "r.ID_RESERVA, r.FECHA_CREACION, "
-            + "r.FRANJA_HORARIA, r.ID_USUARIO, r.IDMESA";
+    private static final String COLUMNS = "r.IDRESERVA, r.FECHA_CREACION, "
+            + "r.FRANJA_HORARIA, r.\"idUsuario\" AS \"idUsuario\", "
+            + "r.\"idMesa\" AS \"idMesa\"";
 
     public ReservaDAO() {
         this(ConnectionDB.fromEnvironment());
@@ -32,7 +33,7 @@ public class ReservaDAO implements IReservaDataHelper {
     @Override
     public void agregar(Reserva object) {
         execute("INSERT INTO RESERVA "
-                + "(ID_RESERVA, FECHA_CREACION, FRANJA_HORARIA, ID_USUARIO, IDMESA) "
+                + "(IDRESERVA, FECHA_CREACION, FRANJA_HORARIA, \"idUsuario\", \"idMesa\") "
                 + "VALUES (?, ?, ?, ?, ?)",
                 object.getIdReserva(), date(object.getFechaCreacion()),
                 object.getFranjaHoraria(),
@@ -43,21 +44,21 @@ public class ReservaDAO implements IReservaDataHelper {
     @Override
     public Reserva buscarPorId(Integer id) {
         List<Reserva> result = query(
-                "SELECT " + COLUMNS + " FROM RESERVA r WHERE r.ID_RESERVA = ?", id);
+                "SELECT " + COLUMNS + " FROM RESERVA r WHERE r.IDRESERVA = ?", id);
         return result.isEmpty() ? null : result.get(0);
     }
 
     @Override
     public List<Reserva> leerTodos() {
         return query("SELECT " + COLUMNS
-                + " FROM RESERVA r ORDER BY r.ID_RESERVA", null);
+                + " FROM RESERVA r ORDER BY r.IDRESERVA", null);
     }
 
     @Override
     public boolean actualizar(Reserva object) {
         return execute("UPDATE RESERVA SET FECHA_CREACION = ?, "
-                + "FRANJA_HORARIA = ?, ID_USUARIO = ?, IDMESA = ? "
-                + "WHERE ID_RESERVA = ?",
+                + "FRANJA_HORARIA = ?, \"idUsuario\" = ?, \"idMesa\" = ? "
+                + "WHERE IDRESERVA = ?",
                 date(object.getFechaCreacion()), object.getFranjaHoraria(),
                 object.getUsuario() == null ? null : object.getUsuario().getIdUsuario(),
                 object.getMesa() == null ? null : object.getMesa().getIdMesa(),
@@ -68,7 +69,7 @@ public class ReservaDAO implements IReservaDataHelper {
     public Reserva eliminar(Integer id) {
         Reserva result = buscarPorId(id);
         if (result != null) {
-            execute("DELETE FROM RESERVA WHERE ID_RESERVA = ?", id);
+            execute("DELETE FROM RESERVA WHERE IDRESERVA = ?", id);
         }
         return result;
     }
@@ -82,7 +83,7 @@ public class ReservaDAO implements IReservaDataHelper {
     @Override
     public List<Reserva> buscarPorEstudiante(String codigo) {
         return query("SELECT " + COLUMNS
-                + " FROM RESERVA r JOIN ESTUDIANTE e ON e.ID_USUARIO = r.ID_USUARIO "
+                + " FROM RESERVA r JOIN ESTUDIANTE e ON e.IDUSUARIO = r.\"idUsuario\" "
                 + "WHERE e.CODIGO_UNICO = ?", codigoUnico(codigo));
     }
 
@@ -95,7 +96,7 @@ public class ReservaDAO implements IReservaDataHelper {
     @Override
     public List<Reserva> buscarPorProfesor(String cedula) {
         return query("SELECT " + COLUMNS
-                + " FROM RESERVA r JOIN PROFESOR p ON p.ID_USUARIO = r.ID_USUARIO "
+                + " FROM RESERVA r JOIN PROFESOR p ON p.IDUSUARIO = r.\"idUsuario\" "
                 + "WHERE p.CEDULA = ?", cedula);
     }
 
@@ -116,17 +117,17 @@ public class ReservaDAO implements IReservaDataHelper {
         try {
             result = connectionDB.query(sql, rows -> {
                     Reserva item = new Reserva();
-                    item.setIdReserva(rows.getInt("ID_RESERVA"));
+                    item.setIdReserva(rows.getInt("IDRESERVA"));
                     item.setFechaCreacion(rows.getDate("FECHA_CREACION"));
                     item.setFranjaHoraria(rows.getString("FRANJA_HORARIA"));
 
                     UsuarioPoliComedor usuario = new UsuarioPoliComedor();
-                    usuario.setIdUsuario(rows.getString("ID_USUARIO"));
+                    usuario.setIdUsuario(rows.getString("idUsuario"));
                     item.setUsuario(usuario);
 
-                    if (rows.getObject("IDMESA") != null) {
+                    if (rows.getObject("idMesa") != null) {
                         Mesa mesa = new Mesa();
-                        mesa.setIdMesa(rows.getInt("IDMESA"));
+                        mesa.setIdMesa(rows.getInt("idMesa"));
                         item.setMesa(mesa);
                     }
                     return item;
