@@ -54,9 +54,9 @@ public final class CafeteriaApp {
     private void iniciar() {
         AlimentoDAO alimentoDAO = new AlimentoDAO();
         SeleccionarAlimento seleccionAlimentos =
-                new SeleccionarAlimento(alimentoDAO);
+                new SeleccionarAlimento();
         UsuarioPoliComedorDAO usuarioDAO = new UsuarioPoliComedorDAO();
-        AutenticarUsuario autenticacion = new AutenticarUsuario(usuarioDAO);
+        AutenticarUsuario autenticacion = new AutenticarUsuario();
         Login login = new Login(autenticacion);
         MesaDAO mesaDAO = new MesaDAO();
         Map<String, PantallaBase> pantallas = new LinkedHashMap<>();
@@ -65,9 +65,9 @@ public final class CafeteriaApp {
         pantallas.put("pago", new PantallaPago(
                 seleccionAlimentos, new PagarTarjeta()));
         pantallas.put("mesas", new PantallaMesasDisponibles(
-                new ReservarMesa(new ReservaDAO(), mesaDAO)));
+                new ReservarMesa()));
         pantallas.put("ticket",
-                new PantallaTicket(new GestorTicket(new TicketDAO())));
+                new PantallaTicket());
         pantallas.put("login", login);
 
         JFrame ventana = new JFrame("Food4All");
