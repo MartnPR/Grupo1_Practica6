@@ -8,7 +8,6 @@ public class Ticket {
     private Date fechaGeneracion;
     private boolean valido;
     private BitMatrix codigoQR;
-    private Factura factura;
 
     public Ticket() {
     }
@@ -52,14 +51,7 @@ public class Ticket {
         this.codigoQR = codigoQR;
     }
 
-    public Factura getFactura() {
-        return factura;
-    }
-
-    public void setFactura(Factura factura) {
-        this.factura = factura;
-    }
-
+    
     @Override
     public String toString() {
         return "Ticket: Representa el comprobante de acceso o consumo con código QR y estado de validez.";

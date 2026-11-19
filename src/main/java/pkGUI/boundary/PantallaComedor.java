@@ -6,7 +6,6 @@ import java.awt.FlowLayout;
 import java.util.List;
 import java.util.Objects;
 import javax.swing.JButton;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 public final class PantallaComedor extends PantallaBase {
