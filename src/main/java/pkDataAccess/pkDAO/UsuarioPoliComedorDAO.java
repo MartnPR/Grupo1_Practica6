@@ -4,14 +4,18 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import pkDataAccess.pkDTO.UsuarioPoliComedor;
+import pkDataAccess.pkDTO.UsuarioTipoDTO;
 import pkDataAccess.pkIDataAccess.IUsuarioDataHelper;
 
 public class UsuarioPoliComedorDAO implements IUsuarioDataHelper {
 
     private final ConnectionDB connectionDB;
+    private static final Object ADMIN_LOCK = new Object();
     private static final String COLUMNS = "u.idusuario AS ID_USUARIO, "
             + "u.nombre AS NOMBRE, u.apellido AS APELLIDO, "
-            + "u.contrasenia AS CONTRASENIA, u.tipo_usuario AS TIPO_USUARIO";
+            + "u.contrasenia AS CONTRASENIA, "
+            + "u.idusuariotipo AS ID_USUARIO_TIPO, "
+            + "u.idusuariotipo AS TIPO_USUARIO";
     private static final String FROM = " FROM usuario u";
     private static final String SUBTIPOS = " LEFT JOIN estudiante e "
             + "ON e.idusuario = u.idusuario "
@@ -31,10 +35,10 @@ public class UsuarioPoliComedorDAO implements IUsuarioDataHelper {
     @Override
     public void agregar(UsuarioPoliComedor object) {
         execute("INSERT INTO usuario "
-                + "(idusuario, nombre, apellido, contrasenia, tipo_usuario) "
+                + "(idusuario, nombre, apellido, contrasenia, idusuariotipo) "
                 + "VALUES (?, ?, ?, ?, ?)",
                 object.getIdUsuario(), object.getNombre(), object.getApellido(),
-                object.getContrasenia(), object.getTipo());
+                object.getContrasenia(), object.getIdUsuarioTipo());
     }
 
     @Override
@@ -55,10 +59,10 @@ public class UsuarioPoliComedorDAO implements IUsuarioDataHelper {
     @Override
     public boolean actualizar(UsuarioPoliComedor object) {
         return execute("UPDATE usuario SET nombre = ?, apellido = ?, "
-                + "contrasenia = ?, tipo_usuario = ? "
+                + "contrasenia = ?, idusuariotipo = ? "
                 + "WHERE idusuario = ?",
                 object.getNombre(), object.getApellido(), object.getContrasenia(),
-                object.getTipo(), object.getIdUsuario()) > 0;
+                object.getIdUsuarioTipo(), object.getIdUsuario()) > 0;
     }
 
     @Override
@@ -74,7 +78,7 @@ public class UsuarioPoliComedorDAO implements IUsuarioDataHelper {
     public UsuarioPoliComedor buscarPorTipo(String tipo) {
         List<UsuarioPoliComedor> result = query(
                 "SELECT " + COLUMNS + FROM
-                        + " WHERE u.tipo_usuario = ?",
+                        + " WHERE LOWER(TRIM(u.idusuariotipo)) = LOWER(TRIM(?))",
                 tipo);
         return result.isEmpty() ? null : result.get(0);
     }
@@ -102,6 +106,16 @@ public class UsuarioPoliComedorDAO implements IUsuarioDataHelper {
             String nombre,
             String apellido,
             String contrasenia) {
+        return crearCuenta(
+                credencial, nombre, apellido, contrasenia, "usuario");
+    }
+
+    public boolean crearCuenta(
+            String credencial,
+            String nombre,
+            String apellido,
+            String contrasenia,
+            String tipoUsuario) {
         if (credencial == null || credencial.isBlank()
                 || nombre == null || nombre.isBlank()
                 || apellido == null || apellido.isBlank()
@@ -115,20 +129,41 @@ public class UsuarioPoliComedorDAO implements IUsuarioDataHelper {
                 || buscarPorId(credencial.trim()) != null) {
             return false;
         }
+        UsuarioTipoDAO usuarioTipoDAO = new UsuarioTipoDAO(connectionDB);
+        UsuarioTipoDTO tipo = usuarioTipoDAO.buscarPorDescripcion(tipoUsuario);
+        if (tipo == null) {
+            tipo = usuarioTipoDAO.buscarPorId(tipoUsuario);
+        }
+        if (tipo == null) {
+            return false;
+        }
+        synchronized (ADMIN_LOCK) {
+            if ("administrador".equalsIgnoreCase(tipo.getDescripcion().trim())
+                    && contarPorTipo(tipo.getIdUsuarioTipo()) > 0) {
+                return false;
+            }
 
-        return execute(
-                "INSERT INTO usuario "
-                        + "(idusuario, nombre, apellido, contrasenia, tipo_usuario) "
-                        + "VALUES (?, ?, ?, ?, ?)",
-                credencial.trim(),
-                nombre.trim(),
-                apellido.trim(),
-                contrasenia,
-                "PERSONAL") > 0;
+            return execute(
+                    "INSERT INTO usuario "
+                            + "(idusuario, nombre, apellido, contrasenia, idusuariotipo) "
+                            + "VALUES (?, ?, ?, ?, ?)",
+                    credencial.trim(),
+                    nombre.trim(),
+                    apellido.trim(),
+                    contrasenia,
+                    tipo.getIdUsuarioTipo()) > 0;
+        }
     }
 
     public int getCount() {
         return aggregate("SELECT COUNT(*) FROM usuario");
+    }
+
+    public int contarPorTipo(String idUsuarioTipo) {
+        return aggregate(
+                "SELECT COUNT(*) FROM usuario "
+                        + "WHERE idusuariotipo = ?",
+                idUsuarioTipo);
     }
 
     private int execute(String sql, Object... parameters) {
@@ -142,24 +177,30 @@ public class UsuarioPoliComedorDAO implements IUsuarioDataHelper {
     private List<UsuarioPoliComedor> query(String sql, Object parameter) {
         List<UsuarioPoliComedor> result = new ArrayList<>();
         try {
+            Object[] parameters = parameter instanceof Object[] values
+                    ? values
+                    : new Object[]{parameter};
             result = connectionDB.query(sql, rows -> {
                 UsuarioPoliComedor item = new UsuarioPoliComedor();
                 item.setIdUsuario(rows.getString("ID_USUARIO"));
                 item.setNombre(rows.getString("NOMBRE"));
                 item.setApellido(rows.getString("APELLIDO"));
                 item.setContrasenia(rows.getString("CONTRASENIA"));
-                item.setTipo(rows.getString("TIPO_USUARIO"));
+                item.setIdUsuarioTipo(rows.getString("ID_USUARIO_TIPO"));
+                item.setUsuarioTipo(new UsuarioTipoDTO(
+                        rows.getString("ID_USUARIO_TIPO"),
+                        rows.getString("TIPO_USUARIO")));
                 return item;
-            }, parameter);
+            }, parameters);
         } catch (SQLException exception) {
             throw error(sql, exception);
         }
         return result;
     }
 
-    private int aggregate(String sql) {
+    private int aggregate(String sql, Object... parameters) {
         try {
-            return connectionDB.aggregate(sql);
+            return connectionDB.aggregate(sql, parameters);
         } catch (SQLException exception) {
             throw error(sql, exception);
         }
@@ -176,6 +217,9 @@ public class UsuarioPoliComedorDAO implements IUsuarioDataHelper {
 
     private IllegalStateException error(String sql, SQLException exception) {
         return new IllegalStateException(
-                "Database operation failed: " + sql, exception);
+                "Database operation failed: " + sql
+                        + ". SQLState=" + exception.getSQLState()
+                        + ". " + exception.getMessage(),
+                exception);
     }
 }

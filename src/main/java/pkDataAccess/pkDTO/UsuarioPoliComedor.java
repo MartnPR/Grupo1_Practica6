@@ -5,7 +5,12 @@ public class UsuarioPoliComedor {
     private String nombre;
     private String apellido;
     private String contrasenia;
-    private String tipo;
+    private String idUsuarioTipo;
+    private UsuarioTipoDTO usuarioTipo;
+
+    public UsuarioPoliComedor() {
+    }
+
     public String getIdUsuario() {
         return idUsuario;
     }
@@ -30,16 +35,38 @@ public class UsuarioPoliComedor {
     public void setContrasenia(String contrasenia) {
         this.contrasenia = contrasenia;
     }
-    public String getTipo() {
-        return tipo;
-    }
-    public void setTipo(String tipo) {
-        this.tipo = tipo;
+    public String getIdUsuarioTipo() {
+        return idUsuarioTipo;
     }
 
+    public void setIdUsuarioTipo(String idUsuarioTipo) {
+        this.idUsuarioTipo = idUsuarioTipo;
+    }
+
+    public UsuarioTipoDTO getUsuarioTipo() {
+        return usuarioTipo;
+    }
+
+    public void setUsuarioTipo(UsuarioTipoDTO usuarioTipo) {
+        this.usuarioTipo = usuarioTipo;
+    }
+
+    public String getTipo() {
+        return usuarioTipo == null ? idUsuarioTipo : usuarioTipo.getDescripcion();
+    }
+
+    public void setTipo(String tipo) {
+        if (usuarioTipo == null) {
+            usuarioTipo = new UsuarioTipoDTO();
+        }
+        usuarioTipo.setDescripcion(tipo);
+    }
+
+    @Override
     public String toString() {
         return "UsuarioPoliComedor [idUsuario=" + idUsuario + ", nombre=" + nombre + ", apellido=" + apellido
-                + ", contrasenia=" + contrasenia + ", tipo=" + tipo + "]";
+                + ", contrasenia=" + contrasenia + ", idUsuarioTipo=" + idUsuarioTipo
+                + ", usuarioTipo=" + usuarioTipo + "]";
     }
 
 }

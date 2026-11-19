@@ -8,6 +8,7 @@ import java.awt.GridLayout;
 import java.util.Objects;
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
@@ -21,18 +22,58 @@ public final class Login extends PantallaBase {
     private final JTextField apellidoRegistro = new JTextField(18);
     private final JTextField credencialRegistro = new JTextField(18);
     private final JPasswordField passwordRegistro = new JPasswordField(18);
+    private String tipoSeleccionado;
+    private final JLabel encabezadoAcceso =
+            new JLabel("Selecciona el tipo de cuenta.");
 
     public Login(AutenticarUsuario autenticacion) {
         super("Iniciar sesión");
         this.autenticacion = Objects.requireNonNull(autenticacion);
+        formularios.add(crearPanelSeleccion(), "seleccion");
         formularios.add(crearPanelLogin(), "login");
         formularios.add(crearPanelRegistro(), "registro");
-        contenido().add(new JLabel(
-                "Ingresa con la credencial y password de tu cuenta."),
-                BorderLayout.NORTH);
+        formulariosLayout.show(formularios, "seleccion");
+        contenido().add(encabezadoAcceso, BorderLayout.NORTH);
         contenido().add(formularios, BorderLayout.CENTER);
     }
 
+    private JPanel crearPanelSeleccion() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 20));
+        JButton administrador =
+                new JButton("Administrador");
+        administrador.addActionListener(
+                event -> seleccionarTipo("Administrador"));
+        JButton cajero = new JButton("Cajero");
+        cajero.addActionListener(event -> seleccionarTipo("Cajero"));
+        JButton usuario =
+                new JButton("Profesor o estudiante");
+        usuario.addActionListener(
+                event -> seleccionarTipo("Profesor o estudiante"));
+        panel.add(administrador);
+        panel.add(cajero);
+        panel.add(usuario);
+        return panel;
+    }
+
+    private void seleccionarTipo(String tipo) {
+        tipoSeleccionado = tipo;
+        formulario.limpiar();
+        mostrarEstado("");
+        if ("Profesor o estudiante".equals(tipo)) {
+            encabezadoAcceso.setText(
+                    "Acceso para profesor o estudiante - usuario Policomedor.");
+        } else {
+            encabezadoAcceso.setText(
+                    "Acceso como " + tipo + ".");
+        }
+        formulariosLayout.show(formularios, "login");
+    }
+
+    private void volverSeleccion() {
+        tipoSeleccionado = null;
+        encabezadoAcceso.setText("Selecciona el tipo de cuenta.");
+        formulariosLayout.show(formularios, "seleccion");
+    }
 
     private JPanel crearPanelLogin() {
         JPanel panel = new JPanel(new BorderLayout(8, 8));
@@ -42,8 +83,12 @@ public final class Login extends PantallaBase {
         JButton registrarse = new JButton("Crear cuenta");
         registrarse.addActionListener(
                 event -> formulariosLayout.show(formularios, "registro"));
+        JButton volver = new JButton("Cambiar tipo");
+        volver.addActionListener(
+                event -> volverSeleccion());
         acciones.add(ingresar);
         acciones.add(registrarse);
+        acciones.add(volver);
         panel.add(formulario, BorderLayout.CENTER);
         panel.add(acciones, BorderLayout.SOUTH);
         return panel;
@@ -82,8 +127,12 @@ public final class Login extends PantallaBase {
         }
 
         try {
+            String tipoAutenticacion =
+                    "Profesor o estudiante".equals(tipoSeleccionado)
+                            ? "Usuario"
+                            : tipoSeleccionado;
             boolean autenticado = autenticacion.autenticar(
-                    "Personal",
+                    tipoAutenticacion,
                     formulario.obtenerCredencial(),
                     formulario.obtenerPassword());
             if (autenticado) {
@@ -119,14 +168,27 @@ public final class Login extends PantallaBase {
                 mostrarEstado("Revisa la longitud de los campos.");
                 return;
             }
+            String tipoRegistro =
+                    "Profesor o estudiante".equals(tipoSeleccionado)
+                            ? "Usuario"
+                            : tipoSeleccionado;
             if (autenticacion.registrarCuenta(
-                    credencial, nombre, apellido, password)) {
+                    credencial, nombre, apellido, password, tipoRegistro)) {
                 mostrarEstado("Cuenta creada. Ya puedes iniciar sesión.");
                 nombreRegistro.setText("");
                 apellidoRegistro.setText("");
                 credencialRegistro.setText("");
                 formulariosLayout.show(formularios, "login");
             } else {
+                if ("Administrador".equals(tipoSeleccionado)) {
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "No se peude crear un nuevo administrador, pues ya existe uno",
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                    formulariosLayout.show(formularios, "login");
+                    return;
+                }
                 mostrarEstado(
                         "No se pudo crear la cuenta. Revisa los datos o usa otra credencial.");
             }

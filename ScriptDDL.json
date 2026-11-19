@@ -17,5 +17,7 @@
 }, {
   "script_creacion": "CREATE TABLE ticket (\n    idticket INTEGER NOT NULL,\n    fecha_generacion TIMESTAMP WITHOUT TIME ZONE NOT NULL,\n    valido BOOLEAN NOT NULL,\n    codigo_qr BYTEA,\n    idfactura VARCHAR(100),\n    PRIMARY KEY (idticket),\n    FOREIGN KEY (idfactura) REFERENCES factura(idfactura) ON UPDATE CASCADE ON DELETE CASCADE\n);"
 }, {
-  "script_creacion": "CREATE TABLE usuario (\n    idusuario VARCHAR(16) NOT NULL,\n    nombre VARCHAR(100) NOT NULL,\n    apellido VARCHAR(100),\n    contrasenia VARCHAR(100) NOT NULL,\n    tipo_usuario VARCHAR(20) NOT NULL,\n    PRIMARY KEY (idusuario)\n);"
+  "script_creacion": "CREATE TABLE usuario (\n    idusuario VARCHAR(16) NOT NULL,\n    nombre VARCHAR(100) NOT NULL,\n    apellido VARCHAR(100),\n    contrasenia VARCHAR(100) NOT NULL,\n    idusuariotipo VARCHAR(20) NOT NULL,\n    PRIMARY KEY (idusuario),\n    FOREIGN KEY (idusuariotipo) REFERENCES usuario_tipo(idusuariotipo)\n);"
+}, {
+  "script_creacion": "CREATE TABLE usuario_tipo (\n    idusuariotipo VARCHAR(16) NOT NULL,\n    descripcion VARCHAR(30) NOT NULL,\n    PRIMARY KEY (idusuariotipo)\n);"
 }]

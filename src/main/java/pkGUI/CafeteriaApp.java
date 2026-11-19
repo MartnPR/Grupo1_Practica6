@@ -50,7 +50,7 @@ public final class CafeteriaApp {
 
     /**
      * Construye y muestra las pantallas disponibles.
-     */
+     */ 
     private void iniciar() {
         AlimentoDAO alimentoDAO = new AlimentoDAO();
         SeleccionarAlimento seleccionAlimentos =
