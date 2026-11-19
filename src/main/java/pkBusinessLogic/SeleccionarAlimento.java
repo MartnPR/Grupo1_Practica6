@@ -221,4 +221,21 @@ public class SeleccionarAlimento {
 
         return descuento;
     }
+    
+    public List<Alimento> buscarAlimentosPorNombre(String nombre) {
+
+        if (nombre == null || nombre.isBlank()) {
+            return List.of();
+        }
+
+        String buscado = nombre.trim().toLowerCase();
+
+        return alimentoDAO.leerTodos().stream()
+                .filter(alimento ->
+                        alimento.getNombre() != null
+                        && alimento.getNombre()
+                                .toLowerCase()
+                                .contains(buscado))
+                .toList();
+    }
 }
