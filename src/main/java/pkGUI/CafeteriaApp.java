@@ -16,6 +16,8 @@ import pkBusinessLogic.SeleccionarAlimento;
 import pkDataAccess.pkDAO.AlimentoDAO;
 import pkDataAccess.pkDAO.MesaDAO;
 import pkDataAccess.pkDAO.ReservaDAO;
+import pkDataAccess.pkDAO.TicketDAO;
+import pkDataAccess.pkDAO.UsuarioPoliComedorDAO;
 import pkGUI.boundary.Login;
 import pkGUI.boundary.MenuPrincipal;
 import pkGUI.boundary.PantallaBase;
@@ -53,7 +55,9 @@ public final class CafeteriaApp {
         AlimentoDAO alimentoDAO = new AlimentoDAO();
         SeleccionarAlimento seleccionAlimentos =
                 new SeleccionarAlimento(alimentoDAO);
-        AutenticarUsuario autenticacion = new AutenticarUsuario();
+        UsuarioPoliComedorDAO usuarioDAO = new UsuarioPoliComedorDAO();
+        AutenticarUsuario autenticacion = new AutenticarUsuario(usuarioDAO);
+        Login login = new Login(autenticacion);
         MesaDAO mesaDAO = new MesaDAO();
         Map<String, PantallaBase> pantallas = new LinkedHashMap<>();
         pantallas.put("menu", new MenuPrincipal(new SelectorVentanas("comedor")));
@@ -62,8 +66,9 @@ public final class CafeteriaApp {
                 seleccionAlimentos, new PagarTarjeta()));
         pantallas.put("mesas", new PantallaMesasDisponibles(
                 new ReservarMesa(new ReservaDAO(), mesaDAO)));
-        pantallas.put("ticket", new PantallaTicket(new GestorTicket()));
-        pantallas.put("login", new Login(autenticacion));
+        pantallas.put("ticket",
+                new PantallaTicket(new GestorTicket(new TicketDAO())));
+        pantallas.put("login", login);
 
         JFrame ventana = new JFrame("Food4All");
         CardLayout tarjetas = new CardLayout();

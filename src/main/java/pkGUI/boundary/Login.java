@@ -33,6 +33,7 @@ public final class Login extends PantallaBase {
         contenido().add(formularios, BorderLayout.CENTER);
     }
 
+
     private JPanel crearPanelLogin() {
         JPanel panel = new JPanel(new BorderLayout(8, 8));
         JPanel acciones = new JPanel(new FlowLayout(FlowLayout.LEADING));
@@ -61,14 +62,14 @@ public final class Login extends PantallaBase {
         campos.add(passwordRegistro);
 
         JPanel acciones = new JPanel(new FlowLayout(FlowLayout.LEADING));
-        JButton registrar = new JButton("Validar registro");
+        JButton registrar = new JButton("Crear cuenta");
         registrar.addActionListener(event -> registrarCuenta());
         JButton volver = new JButton("Volver al inicio de sesión");
         volver.addActionListener(
                 event -> formulariosLayout.show(formularios, "login"));
         acciones.add(registrar);
         acciones.add(volver);
-        panel.add(new JLabel("Registro de demostración."), BorderLayout.NORTH);
+        panel.add(new JLabel("Crea una cuenta para iniciar sesión."), BorderLayout.NORTH);
         panel.add(campos, BorderLayout.CENTER);
         panel.add(acciones, BorderLayout.SOUTH);
         return panel;
@@ -100,22 +101,37 @@ public final class Login extends PantallaBase {
 
     private void registrarCuenta() {
         try {
-            if (nombreRegistro.getText().isBlank()
-                    || apellidoRegistro.getText().isBlank()
-                    || credencialRegistro.getText().isBlank()
-                    || passwordRegistro.getPassword().length == 0) {
+            String nombre = nombreRegistro.getText().trim();
+            String apellido = apellidoRegistro.getText().trim();
+            String credencial = credencialRegistro.getText().trim();
+            String password = new String(passwordRegistro.getPassword());
+            if (nombre.isBlank()
+                    || apellido.isBlank()
+                    || credencial.isBlank()
+                    || password.isBlank()) {
                 mostrarEstado("Completa todos los campos del registro.");
                 return;
             }
-            if (nombreRegistro.getText().length() > 100
-                    || apellidoRegistro.getText().length() > 100
-                    || credencialRegistro.getText().trim().length() > 16
-                    || passwordRegistro.getPassword().length > 100) {
+            if (nombre.length() > 100
+                    || apellido.length() > 100
+                    || credencial.length() > 16
+                    || password.length() > 100) {
                 mostrarEstado("Revisa la longitud de los campos.");
                 return;
             }
-            mostrarEstado(
-                    "No hay un servicio persistente de registro; no se creó la cuenta.");
+            if (autenticacion.registrarCuenta(
+                    credencial, nombre, apellido, password)) {
+                mostrarEstado("Cuenta creada. Ya puedes iniciar sesión.");
+                nombreRegistro.setText("");
+                apellidoRegistro.setText("");
+                credencialRegistro.setText("");
+                formulariosLayout.show(formularios, "login");
+            } else {
+                mostrarEstado(
+                        "No se pudo crear la cuenta. Revisa los datos o usa otra credencial.");
+            }
+        } catch (RuntimeException error) {
+            mostrarEstado(mensajeError(error));
         } finally {
             passwordRegistro.setText("");
         }

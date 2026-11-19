@@ -86,7 +86,9 @@ public final class ConnectionDB {
             boolean local = !hasActiveConnection();
             Connection current = acquire();
             try (PreparedStatement statement = current.prepareStatement(sql)) {
-                setParameters(statement, parameters);
+                if (sql.indexOf('?') >= 0) {
+                    setParameters(statement, parameters);
+                }
                 return statement.executeUpdate();
             } finally {
                 release(local);
@@ -99,7 +101,9 @@ public final class ConnectionDB {
             Connection current = acquire();
             List<T> result = new ArrayList<>();
             try (PreparedStatement statement = current.prepareStatement(sql)) {
-                setParameters(statement, parameters);
+                if (sql.indexOf('?') >= 0) {
+                    setParameters(statement, parameters);
+                }
                 try (ResultSet rows = statement.executeQuery()) {
                     while (rows.next()) {
                         result.add(mapper.map(rows));
