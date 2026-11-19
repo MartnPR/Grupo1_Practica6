@@ -1,13 +1,13 @@
 package pkDataAccess.pkDTO;
 
-public class UsuarioTipoDTO {
+public class UsuarioTipo {
     private String idUsuarioTipo;
     private String descripcion;
 
-    public UsuarioTipoDTO() {
+    public UsuarioTipo() {
     }
 
-    public UsuarioTipoDTO(String idUsuarioTipo, String descripcion) {
+    public UsuarioTipo(String idUsuarioTipo, String descripcion) {
         this.idUsuarioTipo = idUsuarioTipo;
         this.descripcion = descripcion;
     }

@@ -51,6 +51,7 @@ public final class PantallaEstadisticas extends PantallaBase {
 
     private void consultarEstadisticas() {
         try {
+            actualizarFranjasHorarias();
             String franja = (String) franjaHoraria.getSelectedItem();
             if (franja == null) {
                 resultados.setText("No existen franjas horarias registradas.");
@@ -68,6 +69,7 @@ public final class PantallaEstadisticas extends PantallaBase {
     }
 
     private void generarReporte() {
+        actualizarFranjasHorarias();
         String franja = (String) franjaHoraria.getSelectedItem();
         if (franja == null) {
             mostrarEstado("No existen franjas horarias registradas.");
@@ -110,6 +112,19 @@ public final class PantallaEstadisticas extends PantallaBase {
         } catch (IOException error) {
             mostrarEstado("PDF generado en: "
                     + ultimoPdf.toAbsolutePath());
+        }
+    }
+
+    private void actualizarFranjasHorarias() {
+        String seleccionada = (String) franjaHoraria.getSelectedItem();
+        List<String> franjas = calculador.consultarFranjasHorarias();
+        franjaHoraria.removeAllItems();
+        for (String franja : franjas) {
+            franjaHoraria.addItem(franja);
+        }
+        if (seleccionada != null
+                && franjas.contains(seleccionada)) {
+            franjaHoraria.setSelectedItem(seleccionada);
         }
     }
 

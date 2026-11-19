@@ -23,6 +23,7 @@ public final class Login extends PantallaBase {
     private final JTextField credencialRegistro = new JTextField(18);
     private final JPasswordField passwordRegistro = new JPasswordField(18);
     private String tipoSeleccionado;
+    private String credencialAutenticada;
     private final JLabel encabezadoAcceso =
             new JLabel("Selecciona el tipo de cuenta.");
 
@@ -136,6 +137,8 @@ public final class Login extends PantallaBase {
                     formulario.obtenerCredencial(),
                     formulario.obtenerPassword());
             if (autenticado) {
+                credencialAutenticada =
+                        formulario.obtenerCredencial();
                 mostrarEstado("Sesión iniciada.");
                 if ("Administrador".equals(tipoSeleccionado)) {
                     navegar("ingreso-administrador");
@@ -207,6 +210,10 @@ public final class Login extends PantallaBase {
 
     public AutenticarUsuario getAutenticacion() {
         return autenticacion;
+    }
+
+    public String getCredencialAutenticada() {
+        return credencialAutenticada;
     }
 
     public void mostrar() {

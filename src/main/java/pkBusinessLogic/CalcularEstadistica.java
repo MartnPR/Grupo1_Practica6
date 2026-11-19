@@ -88,13 +88,8 @@ public class CalcularEstadistica {
             return 0;
         }
 
-        Set<String> usuarios = new HashSet<>();
         Set<String> fechas = new HashSet<>();
         for (Reserva reserva : reservas) {
-            if (reserva.getUsuario() != null
-                    && reserva.getUsuario().getIdUsuario() != null) {
-                usuarios.add(reserva.getUsuario().getIdUsuario());
-            }
             if (reserva.getFechaCreacion() != null) {
                 fechas.add(fecha(reserva.getFechaCreacion()));
             }
@@ -102,12 +97,10 @@ public class CalcularEstadistica {
 
         double totalVentas = 0;
         for (Factura factura : facturas) {
-            if (factura.getIdUsuario() == null
-                    || factura.getFecha() == null) {
+            if (factura.getFecha() == null) {
                 continue;
             }
-            if (usuarios.contains(factura.getIdUsuario())
-                    && fechas.contains(fecha(factura.getFecha()))) {
+            if (fechas.contains(fecha(factura.getFecha()))) {
                 totalVentas += factura.getTotal() - factura.getDescuento();
             }
         }
@@ -148,6 +141,8 @@ public class CalcularEstadistica {
         reporte.setDescripcion(
                 "totalVentas=" + totalVentas
                         + "; totalReservas=" + totalReservas);
+        reporte.setTotalVentas(totalVentas);
+        reporte.setTotalReservas(totalReservas);
         reporte.setIdReporte(crearIdReporte());
         reporte.setGraficos(false);
 
@@ -175,6 +170,8 @@ public class CalcularEstadistica {
         reporte.setDescripcion(
                 "totalVentas=" + totalVentas
                         + "; totalReservas=" + totalReservas);
+        reporte.setTotalVentas(totalVentas);
+        reporte.setTotalReservas(totalReservas);
 
         reporteDAO.agregar(reporte);
         return reporte;

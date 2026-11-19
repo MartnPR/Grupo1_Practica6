@@ -4,7 +4,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import pkDataAccess.pkDTO.UsuarioPoliComedor;
-import pkDataAccess.pkDTO.UsuarioTipoDTO;
+import pkDataAccess.pkDTO.UsuarioTipo;
 import pkDataAccess.pkIDataAccess.IUsuarioDataHelper;
 
 public class UsuarioPoliComedorDAO implements IUsuarioDataHelper {
@@ -130,7 +130,7 @@ public class UsuarioPoliComedorDAO implements IUsuarioDataHelper {
             return false;
         }
         UsuarioTipoDAO usuarioTipoDAO = new UsuarioTipoDAO(connectionDB);
-        UsuarioTipoDTO tipo = usuarioTipoDAO.buscarPorDescripcion(tipoUsuario);
+        UsuarioTipo tipo = usuarioTipoDAO.buscarPorDescripcion(tipoUsuario);
         if (tipo == null) {
             tipo = usuarioTipoDAO.buscarPorId(tipoUsuario);
         }
@@ -187,7 +187,7 @@ public class UsuarioPoliComedorDAO implements IUsuarioDataHelper {
                 item.setApellido(rows.getString("APELLIDO"));
                 item.setContrasenia(rows.getString("CONTRASENIA"));
                 item.setIdUsuarioTipo(rows.getString("ID_USUARIO_TIPO"));
-                item.setUsuarioTipo(new UsuarioTipoDTO(
+                item.setUsuarioTipo(new UsuarioTipo(
                         rows.getString("ID_USUARIO_TIPO"),
                         rows.getString("TIPO_USUARIO")));
                 return item;

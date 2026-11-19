@@ -8,6 +8,8 @@ public class Reporte {
     private String franjaHoraria;
     private boolean graficos;
     private String descripcion;
+    private double totalVentas;
+    private int totalReservas;
     public Reporte() {
     }
 
@@ -55,6 +57,22 @@ public class Reporte {
 
     public void setDescripcion(String descripcion) {
         this.descripcion = descripcion;
+    }
+
+    public double getTotalVentas() {
+        return totalVentas;
+    }
+
+    public void setTotalVentas(double totalVentas) {
+        this.totalVentas = totalVentas;
+    }
+
+    public int getTotalReservas() {
+        return totalReservas;
+    }
+
+    public void setTotalReservas(int totalReservas) {
+        this.totalReservas = totalReservas;
     }
 
 

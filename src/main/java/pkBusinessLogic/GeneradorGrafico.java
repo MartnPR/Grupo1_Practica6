@@ -128,6 +128,8 @@ public class GeneradorGrafico {
         reporte.setDescripcion(
                 "totalVentas=" + totalVentas
                         + "; totalReservas=0");
+        reporte.setTotalVentas(totalVentas);
+        reporte.setTotalReservas(0);
 
         return reporte;
     }
@@ -309,10 +311,18 @@ public class GeneradorGrafico {
     }
 
     private double leerTotalVentas(Reporte reporte) {
+        if (reporte.getTotalVentas() != 0
+                || reporte.getDescripcion() == null) {
+            return reporte.getTotalVentas();
+        }
         return leerDouble(reporte.getDescripcion(), "totalVentas");
     }
 
     private int leerTotalReservas(Reporte reporte) {
+        if (reporte.getTotalReservas() != 0
+                || reporte.getDescripcion() == null) {
+            return reporte.getTotalReservas();
+        }
         return (int) leerDouble(reporte.getDescripcion(), "totalReservas");
     }
 
