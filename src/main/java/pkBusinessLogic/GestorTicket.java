@@ -12,9 +12,9 @@ import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 
+import pkDataAccess.pkDAO.TicketDAO;
 import pkDataAccess.pkDTO.Factura;
 import pkDataAccess.pkDTO.Ticket;
-import pkDataAccess.pkDAO.TicketDAO;
 
 public class GestorTicket {
 
@@ -22,7 +22,8 @@ public class GestorTicket {
             Path.of("tickets", "qr");
 
     /*
-     * Temporal mientras TicketDAO/BD no genere IDs
+     * Temporal mientras el identificador del ticket
+     * no sea generado directamente por la BD.
      */
     private static final AtomicInteger SECUENCIA =
             new AtomicInteger(1);
@@ -30,35 +31,38 @@ public class GestorTicket {
     private Factura facturaPendiente;
     private Ticket ticketActual;
     private Path rutaQrActual;
+
     private final TicketDAO ticketDAO;
 
-    public GestorTicket(TicketDAO ticketDAO) {
-
-        if (ticketDAO == null) {
-            throw new IllegalArgumentException(
-                    "TicketDAO no puede ser nulo."
-            );
-        }
-
-        this.ticketDAO = ticketDAO;
+    public GestorTicket() {
+        this.ticketDAO = new TicketDAO();
     }
 
     public void prepararFactura(Factura factura) {
+
         if (factura == null) {
             throw new IllegalArgumentException(
-                    "No se puede preparar un ticket sin factura.");
+                    "No se puede preparar un ticket sin factura."
+            );
         }
-        facturaPendiente = factura;
+
+        this.facturaPendiente = factura;
     }
 
     public String generarTicketParaVista() {
+
         if (facturaPendiente == null) {
             throw new IllegalStateException(
-                    "No hay una compra confirmada para generar un ticket.");
+                    "No hay una compra confirmada "
+                    + "para generar un ticket."
+            );
         }
 
-        Ticket ticket = generarTicket(facturaPendiente);
+        Ticket ticket =
+                generarTicket(facturaPendiente);
+
         facturaPendiente = null;
+
         return resumenTicket(ticket);
     }
 
@@ -71,9 +75,11 @@ public class GestorTicket {
     }
 
     public String mostrarTicketActual() {
+
         if (ticketActual == null) {
             return "Aún no se ha generado un ticket.";
         }
+
         return resumenTicket(ticketActual);
     }
 
@@ -89,38 +95,63 @@ public class GestorTicket {
             );
         }
 
+        if (factura.getIdFactura() == null
+                || factura.getIdFactura().isBlank()) {
+
+            throw new IllegalArgumentException(
+                    "La factura debe tener un identificador "
+                    + "antes de generar el ticket."
+            );
+        }
+
         Ticket ticket = new Ticket();
 
         ticket.setIdTicket(
                 SECUENCIA.getAndIncrement()
         );
 
-        ticket.setFechaGeneracion(new Date());
+        ticket.setFechaGeneracion(
+                new Date()
+        );
+
         ticket.setValido(true);
-        ticket.setFactura(factura);
+
+        // FK entre Ticket y Factura
+        ticket.setIdFactura(
+                factura.getIdFactura()
+        );
 
         BitMatrix codigoQR =
-                generarMatrizQR(ticket, factura);
+                generarMatrizQR(
+                        ticket,
+                        factura
+                );
 
-        ticket.setCodigoQR(codigoQR);
-        ticketActual = ticket;
+        ticket.setCodigoQR(
+                codigoQR
+        );
 
-        /*
-         * Mantiene también la relación Factura -> Ticket
-         */
+        this.ticketActual = ticket;
+
+        // Relación desde Factura hacia Ticket
         factura.setTicket(ticket);
 
-        rutaQrActual = guardarQRComoImagen(ticket);
-        
+        this.rutaQrActual =
+                guardarQRComoImagen(ticket);
+
+        // Persistencia del ticket
         ticketDAO.agregar(ticket);
 
         return ticket;
     }
 
-    private String resumenTicket(Ticket ticket) {
+    private String resumenTicket(
+            Ticket ticket) {
+
         return "Ticket #%d — %s".formatted(
                 ticket.getIdTicket(),
-                ticket.getFechaGeneracion());
+                ticket.getFechaGeneracion()
+        );
     }
 
     private BitMatrix generarMatrizQR(
@@ -153,7 +184,8 @@ public class GestorTicket {
         }
     }
 
-    public Path guardarQRComoImagen(Ticket ticket) {
+    public Path guardarQRComoImagen(
+            Ticket ticket) {
 
         if (ticket == null
                 || ticket.getCodigoQR() == null) {
@@ -165,7 +197,9 @@ public class GestorTicket {
 
         try {
 
-            Files.createDirectories(CARPETA_QR);
+            Files.createDirectories(
+                    CARPETA_QR
+            );
 
             Path ruta =
                     CARPETA_QR.resolve(
@@ -191,7 +225,8 @@ public class GestorTicket {
         }
     }
 
-    public boolean validarTicket(Ticket ticket) {
+    public boolean validarTicket(
+            Ticket ticket) {
 
         if (ticket == null
                 || ticket.getIdTicket() == null) {
@@ -208,9 +243,11 @@ public class GestorTicket {
                 && ticketPersistido.isValido();
     }
 
-    public void utilizarTicket(Ticket ticket) {
+    public void utilizarTicket(
+            Ticket ticket) {
 
         if (!validarTicket(ticket)) {
+
             throw new IllegalStateException(
                     "El ticket no es válido."
             );
