@@ -9,6 +9,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import pkBusinessLogic.AutenticarUsuario;
+import pkBusinessLogic.CalcularEstadistica;
 import pkBusinessLogic.GestorTicket;
 import pkBusinessLogic.PagarTarjeta;
 import pkBusinessLogic.ReservarMesa;
@@ -21,7 +22,9 @@ import pkDataAccess.pkDAO.UsuarioPoliComedorDAO;
 import pkGUI.boundary.Login;
 import pkGUI.boundary.MenuPrincipal;
 import pkGUI.boundary.PantallaBase;
+import pkGUI.boundary.PantallaCajero;
 import pkGUI.boundary.PantallaComedor;
+import pkGUI.boundary.PantallaEstadisticas;
 import pkGUI.boundary.PantallaMesasDisponibles;
 import pkGUI.boundary.PantallaPago;
 import pkGUI.boundary.PantallaTicket;
@@ -60,33 +63,68 @@ public final class CafeteriaApp {
         Login login = new Login(autenticacion);
         MesaDAO mesaDAO = new MesaDAO();
         Map<String, PantallaBase> pantallas = new LinkedHashMap<>();
-        pantallas.put("menu", new MenuPrincipal(new SelectorVentanas("comedor")));
-        pantallas.put("comedor", new PantallaComedor(seleccionAlimentos));
-        pantallas.put("pago", new PantallaPago(
-                seleccionAlimentos, new PagarTarjeta()));
-        pantallas.put("mesas", new PantallaMesasDisponibles(
-                new ReservarMesa()));
-        pantallas.put("ticket",
-                new PantallaTicket());
+        PantallaCajero cajero = new PantallaCajero(new GestorTicket());
+        PantallaEstadisticas estadisticas =
+                new PantallaEstadisticas(new CalcularEstadistica());
+        pantallas.put("menu", new MenuPrincipal(
+                new SelectorVentanas("comedor")));
+        pantallas.put("comedor",
+                new PantallaComedor(seleccionAlimentos));
+        pantallas.put("pago",
+                new PantallaPago(seleccionAlimentos, new PagarTarjeta()));
+        pantallas.put("mesas",
+                new PantallaMesasDisponibles(new ReservarMesa()));
+        pantallas.put("ticket", new PantallaTicket());
+        pantallas.put("cajero", cajero);
+        pantallas.put("administrador", estadisticas);
         pantallas.put("login", login);
 
         JFrame ventana = new JFrame("Food4All");
         CardLayout tarjetas = new CardLayout();
         JPanel contenedor = new JPanel(tarjetas);
         boolean[] usuarioAutenticado = {false};
+        String[] rolAutenticado = {null};
 
         for (Map.Entry<String, PantallaBase> entry : pantallas.entrySet()) {
             contenedor.add(entry.getValue(), entry.getKey());
             entry.getValue().setNavegador(destino -> {
                 if ("salir".equals(destino)) {
                     ventana.dispose();
-                } else if ("ingreso".equals(destino)) {
+                } else if ("ingreso-administrador".equals(destino)) {
                     usuarioAutenticado[0] = true;
+                    rolAutenticado[0] = "administrador";
+                    tarjetas.show(contenedor, "administrador");
+                } else if ("ingreso-cajero".equals(destino)) {
+                    usuarioAutenticado[0] = true;
+                    rolAutenticado[0] = "cajero";
+                    tarjetas.show(contenedor, "cajero");
+                } else if ("ingreso-usuario".equals(destino)) {
+                    usuarioAutenticado[0] = true;
+                    rolAutenticado[0] = "usuario";
                     tarjetas.show(contenedor, "menu");
+                } else if ("menu".equals(destino)) {
+                    if ("administrador".equals(rolAutenticado[0])) {
+                        tarjetas.show(contenedor, "administrador");
+                    } else if ("cajero".equals(rolAutenticado[0])) {
+                        tarjetas.show(contenedor, "cajero");
+                    } else if ("usuario".equals(rolAutenticado[0])) {
+                        tarjetas.show(contenedor, "menu");
+                    } else {
+                        tarjetas.show(contenedor, "login");
+                    }
                 } else if (!usuarioAutenticado[0]
                         && !"login".equals(destino)) {
                     tarjetas.show(contenedor, "login");
-                } else if (pantallas.containsKey(destino)) {
+                } else if ("administrador".equals(destino)
+                        && "administrador".equals(rolAutenticado[0])) {
+                    tarjetas.show(contenedor, "administrador");
+                } else if ("cajero".equals(destino)
+                        && "cajero".equals(rolAutenticado[0])) {
+                    tarjetas.show(contenedor, "cajero");
+                } else if ("usuario".equals(rolAutenticado[0])
+                        && pantallas.containsKey(destino)
+                        && !"administrador".equals(destino)
+                        && !"cajero".equals(destino)) {
                     tarjetas.show(contenedor, destino);
                 }
             });

@@ -137,7 +137,13 @@ public final class Login extends PantallaBase {
                     formulario.obtenerPassword());
             if (autenticado) {
                 mostrarEstado("Sesión iniciada.");
-                navegar("ingreso");
+                if ("Administrador".equals(tipoSeleccionado)) {
+                    navegar("ingreso-administrador");
+                } else if ("Cajero".equals(tipoSeleccionado)) {
+                    navegar("ingreso-cajero");
+                } else {
+                    navegar("ingreso-usuario");
+                }
             } else {
                 mostrarEstado("Credencial o password incorrectos.");
             }
