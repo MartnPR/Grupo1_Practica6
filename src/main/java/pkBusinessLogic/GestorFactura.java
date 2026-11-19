@@ -12,14 +12,26 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 
+import pkDataAccess.pkDAO.FacturaDAO;
+
 import pkDataAccess.pkDTO.Factura;
 
 public class GestorFactura {
 
+    private final FacturaDAO facturaDAO;
+
     private static final Path CARPETA_FACTURAS =
             Path.of("facturas");
 
-    public GestorFactura() {
+    public GestorFactura(FacturaDAO facturaDAO) {
+
+        if (facturaDAO == null) {
+            throw new IllegalArgumentException(
+                    "FacturaDAO no puede ser nulo."
+            );
+        }
+
+        this.facturaDAO = facturaDAO;
     }
 
     public Factura generarFactura(
@@ -69,6 +81,8 @@ public class GestorFactura {
         factura.setMetodoPago(metodoPago);
         factura.setTotal(total);
         factura.setDescuento(descuento);
+        
+        facturaDAO.agregar(factura);
 
         return factura;
     }

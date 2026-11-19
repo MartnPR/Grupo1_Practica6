@@ -14,6 +14,7 @@ import com.google.zxing.qrcode.QRCodeWriter;
 
 import pkDataAccess.pkDTO.Factura;
 import pkDataAccess.pkDTO.Ticket;
+import pkDataAccess.pkDAO.TicketDAO;
 
 public class GestorTicket {
 
@@ -29,8 +30,17 @@ public class GestorTicket {
     private Factura facturaPendiente;
     private Ticket ticketActual;
     private Path rutaQrActual;
+    private final TicketDAO ticketDAO;
 
-    public GestorTicket() {
+    public GestorTicket(TicketDAO ticketDAO) {
+
+        if (ticketDAO == null) {
+            throw new IllegalArgumentException(
+                    "TicketDAO no puede ser nulo."
+            );
+        }
+
+        this.ticketDAO = ticketDAO;
     }
 
     public void prepararFactura(Factura factura) {
@@ -100,6 +110,8 @@ public class GestorTicket {
         factura.setTicket(ticket);
 
         rutaQrActual = guardarQRComoImagen(ticket);
+        
+        ticketDAO.agregar(ticket);
 
         return ticket;
     }
@@ -180,10 +192,19 @@ public class GestorTicket {
 
     public boolean validarTicket(Ticket ticket) {
 
-        return ticket != null
-                && ticket.getIdTicket() != null
-                && ticket.getCodigoQR() != null
-                && ticket.isValido();
+        if (ticket == null
+                || ticket.getIdTicket() == null) {
+
+            return false;
+        }
+
+        Ticket ticketPersistido =
+                ticketDAO.buscarPorId(
+                        ticket.getIdTicket()
+                );
+
+        return ticketPersistido != null
+                && ticketPersistido.isValido();
     }
 
     public void utilizarTicket(Ticket ticket) {
@@ -194,9 +215,8 @@ public class GestorTicket {
             );
         }
 
-        /*
-         * Después de retirar la comida, el ticket deja de ser válido
-         */
         ticket.setValido(false);
+
+        ticketDAO.actualizar(ticket);
     }
 }

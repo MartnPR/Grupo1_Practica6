@@ -1,8 +1,22 @@
 package pkBusinessLogic;
 
+import pkDataAccess.pkDAO.UsuarioPoliComedorDAO;
+import pkDataAccess.pkDTO.UsuarioPoliComedor;
+
 public class AutenticarUsuario {
 
-    public AutenticarUsuario() {
+    private final UsuarioPoliComedorDAO usuarioDAO;
+
+    public AutenticarUsuario(
+            UsuarioPoliComedorDAO usuarioDAO) {
+
+        if (usuarioDAO == null) {
+            throw new IllegalArgumentException(
+                    "UsuarioPoliComedorDAO no puede ser nulo."
+            );
+        }
+
+        this.usuarioDAO = usuarioDAO;
     }
 
     public boolean autenticar(
@@ -10,57 +24,69 @@ public class AutenticarUsuario {
             String usuario,
             String pasw) {
 
-        if (metodo == null) {
+        if (metodo == null
+                || usuario == null
+                || usuario.isBlank()) {
+
             return false;
         }
 
         switch (metodo.toLowerCase()) {
 
             case "estudiante":
-                try {
-                    return autenticarEstudiante(
-                            Integer.parseInt(usuario));
-                } catch (NumberFormatException e) {
-                    return false;
-                }
+                return autenticarEstudiante(usuario);
 
             case "personal":
                 return autenticarPersonal(usuario, pasw);
 
             case "profesor":
-                try {
-                    return autenticarProfesor(
-                            Integer.parseInt(usuario), pasw);
-                } catch (NumberFormatException e) {
-                    return false;
-                }
+                return autenticarProfesor(usuario, pasw);
 
             default:
                 return false;
         }
     }
 
-    private boolean autenticarEstudiante(int codigoUnico) {
-        // Validar código único
-        return codigoUnico > 0;
+    private boolean autenticarEstudiante(
+            String codigoUnico) {
+
+        UsuarioPoliComedor usuario =
+                usuarioDAO.buscarPorCodigoUnico(
+                        codigoUnico
+                );
+
+        return usuario != null;
     }
 
     private boolean autenticarPersonal(
-            String usuario,
+            String idUsuario,
             String pasw) {
 
+        if (pasw == null || pasw.isBlank()) {
+            return false;
+        }
+
+        UsuarioPoliComedor usuario =
+                usuarioDAO.buscarPorId(idUsuario);
+
         return usuario != null
-                && !usuario.isBlank()
-                && pasw != null
-                && !pasw.isBlank();
+                && usuario.getContrasenia() != null
+                && usuario.getContrasenia().equals(pasw);
     }
 
     private boolean autenticarProfesor(
-            int cedula,
+            String cedula,
             String pasw) {
 
-        return cedula > 0
-                && pasw != null
-                && !pasw.isBlank();
+        if (pasw == null || pasw.isBlank()) {
+            return false;
+        }
+
+        UsuarioPoliComedor usuario =
+                usuarioDAO.buscarPorCedula(cedula);
+
+        return usuario != null
+                && usuario.getContrasenia() != null
+                && usuario.getContrasenia().equals(pasw);
     }
 }
