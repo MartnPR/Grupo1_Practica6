@@ -15,6 +15,7 @@ import com.google.zxing.qrcode.QRCodeWriter;
 import pkDataAccess.pkDAO.TicketDAO;
 import pkDataAccess.pkDTO.Factura;
 import pkDataAccess.pkDTO.Ticket;
+import java.util.List;
 
 public class GestorTicket {
 
@@ -68,6 +69,18 @@ public class GestorTicket {
 
     public boolean validarTicketActual() {
         return validarTicket(ticketActual);
+    }
+
+    public List<Ticket> listarTicketsValidos() {
+        return ticketDAO.buscarPorValido(true);
+    }
+
+    public boolean validarTicketSeleccionado(Ticket ticket) {
+        if (!validarTicket(ticket)) {
+            return false;
+        }
+        utilizarTicket(ticket);
+        return true;
     }
 
     public boolean tieneTicketActual() {
