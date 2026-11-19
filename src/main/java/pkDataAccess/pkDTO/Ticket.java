@@ -8,6 +8,7 @@ public class Ticket {
     private Date fechaGeneracion;
     private boolean valido;
     private BitMatrix codigoQR;
+    private Factura factura;
 
     /**
      * 1. Nombre: idFactura.
@@ -60,6 +61,14 @@ public class Ticket {
 
     public void setCodigoQR(BitMatrix codigoQR) {
         this.codigoQR = codigoQR;
+    }
+
+    public Factura getFactura() {
+        return factura;
+    }
+
+    public void setFactura(Factura factura) {
+        this.factura = factura;
     }
 
     public String getIdFactura() {

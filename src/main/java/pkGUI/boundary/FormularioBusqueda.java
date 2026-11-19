@@ -21,7 +21,7 @@ public final class FormularioBusqueda extends JPanel {
             limpiarCampo();
             buscar.run();
         });
-        controles.add(new JLabel("Tipo de alimento:"));
+        controles.add(new JLabel("Nombre o tipo de alimento:"));
         controles.add(entrada);
         controles.add(limpiar);
         add(controles, BorderLayout.CENTER);

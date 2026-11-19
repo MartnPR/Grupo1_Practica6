@@ -7,15 +7,11 @@ public class AutenticarUsuario {
 
     private final UsuarioPoliComedorDAO usuarioDAO;
 
-    public AutenticarUsuario(
-            UsuarioPoliComedorDAO usuarioDAO) {
-
+    public AutenticarUsuario(UsuarioPoliComedorDAO usuarioDAO) {
         if (usuarioDAO == null) {
             throw new IllegalArgumentException(
-                    "UsuarioPoliComedorDAO no puede ser nulo."
-            );
+                    "UsuarioPoliComedorDAO no puede ser nulo.");
         }
-
         this.usuarioDAO = usuarioDAO;
     }
 
@@ -23,70 +19,60 @@ public class AutenticarUsuario {
             String metodo,
             String usuario,
             String pasw) {
-
         if (metodo == null
                 || usuario == null
                 || usuario.isBlank()) {
-
             return false;
         }
 
         switch (metodo.toLowerCase()) {
-
             case "estudiante":
                 return autenticarEstudiante(usuario);
-
             case "personal":
                 return autenticarPersonal(usuario, pasw);
-
             case "profesor":
                 return autenticarProfesor(usuario, pasw);
-
             default:
                 return false;
         }
     }
 
-    private boolean autenticarEstudiante(
-            String codigoUnico) {
+    public boolean registrarCuenta(
+            String credencial,
+            String nombre,
+            String apellido,
+            String pasw) {
+        return usuarioDAO.crearCuenta(
+                credencial, nombre, apellido, pasw);
+    }
 
-        UsuarioPoliComedor usuario =
-                usuarioDAO.buscarPorCodigoUnico(
-                        codigoUnico
-                );
-
-        return usuario != null;
+    private boolean autenticarEstudiante(String codigoUnico) {
+        UsuarioPoliComedor encontrado =
+                usuarioDAO.buscarPorCodigoUnico(codigoUnico);
+        return encontrado != null;
     }
 
     private boolean autenticarPersonal(
             String idUsuario,
             String pasw) {
-
         if (pasw == null || pasw.isBlank()) {
             return false;
         }
-
-        UsuarioPoliComedor usuario =
-                usuarioDAO.buscarPorId(idUsuario);
-
-        return usuario != null
-                && usuario.getContrasenia() != null
-                && usuario.getContrasenia().equals(pasw);
+        UsuarioPoliComedor encontrado =
+                usuarioDAO.buscarPorId(idUsuario.trim());
+        return encontrado != null
+                && pasw.equals(encontrado.getContrasenia());
     }
 
     private boolean autenticarProfesor(
             String cedula,
             String pasw) {
-
         if (pasw == null || pasw.isBlank()) {
             return false;
         }
-
-        UsuarioPoliComedor usuario =
+        UsuarioPoliComedor encontrado =
                 usuarioDAO.buscarPorCedula(cedula);
-
-        return usuario != null
-                && usuario.getContrasenia() != null
-                && usuario.getContrasenia().equals(pasw);
+        return encontrado != null
+                && pasw.equals(encontrado.getContrasenia());
     }
 }
