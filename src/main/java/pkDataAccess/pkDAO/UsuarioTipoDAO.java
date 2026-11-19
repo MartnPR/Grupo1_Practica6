@@ -3,7 +3,7 @@ package pkDataAccess.pkDAO;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import pkDataAccess.pkDTO.UsuarioTipoDTO;
+import pkDataAccess.pkDTO.UsuarioTipo;
 import pkDataAccess.pkIDataAccess.IUsuarioTipoDataHelper;
 
 public class UsuarioTipoDAO implements IUsuarioTipoDataHelper {
@@ -21,15 +21,15 @@ public class UsuarioTipoDAO implements IUsuarioTipoDataHelper {
     }
 
     @Override
-    public void agregar(UsuarioTipoDTO object) {
+    public void agregar(UsuarioTipo object) {
         execute("INSERT INTO usuario_tipo "
                 + "(idusuariotipo, descripcion) VALUES (?, ?)",
                 object.getIdUsuarioTipo(), object.getDescripcion());
     }
 
     @Override
-    public UsuarioTipoDTO buscarPorId(String id) {
-        List<UsuarioTipoDTO> result = query(
+    public UsuarioTipo buscarPorId(String id) {
+        List<UsuarioTipo> result = query(
                 "SELECT idusuariotipo AS ID_USUARIO_TIPO, "
                         + "descripcion AS DESCRIPCION "
                         + "FROM usuario_tipo WHERE idusuariotipo = ?",
@@ -37,8 +37,8 @@ public class UsuarioTipoDAO implements IUsuarioTipoDataHelper {
         return result.isEmpty() ? tipoConocido(id) : result.get(0);
     }
 
-    public UsuarioTipoDTO buscarPorDescripcion(String descripcion) {
-        List<UsuarioTipoDTO> result = query(
+    public UsuarioTipo buscarPorDescripcion(String descripcion) {
+        List<UsuarioTipo> result = query(
                 "SELECT idusuariotipo AS ID_USUARIO_TIPO, "
                         + "descripcion AS DESCRIPCION "
                         + "FROM usuario_tipo "
@@ -51,8 +51,8 @@ public class UsuarioTipoDAO implements IUsuarioTipoDataHelper {
     }
 
     @Override
-    public List<UsuarioTipoDTO> leerTodos() {
-        List<UsuarioTipoDTO> result = query(
+    public List<UsuarioTipo> leerTodos() {
+        List<UsuarioTipo> result = query(
                 "SELECT idusuariotipo AS ID_USUARIO_TIPO, "
                         + "descripcion AS DESCRIPCION "
                         + "FROM usuario_tipo ORDER BY idusuariotipo",
@@ -66,7 +66,7 @@ public class UsuarioTipoDAO implements IUsuarioTipoDataHelper {
     }
 
     @Override
-    public boolean actualizar(UsuarioTipoDTO object) {
+    public boolean actualizar(UsuarioTipo object) {
         return execute(
                 "UPDATE usuario_tipo SET descripcion = ? "
                         + "WHERE idusuariotipo = ?",
@@ -74,17 +74,17 @@ public class UsuarioTipoDAO implements IUsuarioTipoDataHelper {
     }
 
     @Override
-    public UsuarioTipoDTO eliminar(String id) {
-        UsuarioTipoDTO result = buscarPorId(id);
+    public UsuarioTipo eliminar(String id) {
+        UsuarioTipo result = buscarPorId(id);
         if (result != null) {
             execute("DELETE FROM usuario_tipo WHERE idusuariotipo = ?", id);
         }
         return result;
     }
 
-    private List<UsuarioTipoDTO> query(String sql, Object parameter) {
+    private List<UsuarioTipo> query(String sql, Object parameter) {
         try {
-            return connectionDB.query(sql, rows -> new UsuarioTipoDTO(
+            return connectionDB.query(sql, rows -> new UsuarioTipo(
                     rows.getString("ID_USUARIO_TIPO"),
                     rows.getString("DESCRIPCION")),
                     parameter);
@@ -97,7 +97,7 @@ public class UsuarioTipoDAO implements IUsuarioTipoDataHelper {
         }
     }
 
-    private UsuarioTipoDTO tipoConocido(String valor) {
+    private UsuarioTipo tipoConocido(String valor) {
         if (valor == null) {
             return null;
         }
@@ -108,17 +108,17 @@ public class UsuarioTipoDAO implements IUsuarioTipoDataHelper {
                 || "profesor".equals(tipo)
                 || "profesor o estudiante".equals(tipo)
                 || "1".equals(tipo)) {
-            return new UsuarioTipoDTO("1", "Usuario");
+            return new UsuarioTipo("1", "Usuario");
         }
         if ("administrador".equals(tipo)
                 || "admin".equals(tipo)
                 || "2".equals(tipo)) {
-            return new UsuarioTipoDTO("2", "Administrador");
+            return new UsuarioTipo("2", "Administrador");
         }
         if ("cajero".equals(tipo)
                 || "cashier".equals(tipo)
                 || "3".equals(tipo)) {
-            return new UsuarioTipoDTO("3", "Cajero");
+            return new UsuarioTipo("3", "Cajero");
         }
         return null;
     }

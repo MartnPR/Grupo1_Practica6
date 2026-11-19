@@ -6,7 +6,7 @@ public class UsuarioPoliComedor {
     private String apellido;
     private String contrasenia;
     private String idUsuarioTipo;
-    private UsuarioTipoDTO usuarioTipo;
+    private UsuarioTipo usuarioTipo;
 
     public UsuarioPoliComedor() {
     }
@@ -43,11 +43,11 @@ public class UsuarioPoliComedor {
         this.idUsuarioTipo = idUsuarioTipo;
     }
 
-    public UsuarioTipoDTO getUsuarioTipo() {
+    public UsuarioTipo getUsuarioTipo() {
         return usuarioTipo;
     }
 
-    public void setUsuarioTipo(UsuarioTipoDTO usuarioTipo) {
+    public void setUsuarioTipo(UsuarioTipo usuarioTipo) {
         this.usuarioTipo = usuarioTipo;
     }
 
@@ -57,7 +57,7 @@ public class UsuarioPoliComedor {
 
     public void setTipo(String tipo) {
         if (usuarioTipo == null) {
-            usuarioTipo = new UsuarioTipoDTO();
+            usuarioTipo = new UsuarioTipo();
         }
         usuarioTipo.setDescripcion(tipo);
     }

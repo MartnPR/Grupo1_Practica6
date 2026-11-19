@@ -66,14 +66,15 @@ public final class CafeteriaApp {
         PantallaCajero cajero = new PantallaCajero(new GestorTicket());
         PantallaEstadisticas estadisticas =
                 new PantallaEstadisticas(new CalcularEstadistica());
+        PantallaMesasDisponibles mesasDisponibles =
+                new PantallaMesasDisponibles(new ReservarMesa());
         pantallas.put("menu", new MenuPrincipal(
                 new SelectorVentanas("comedor")));
         pantallas.put("comedor",
                 new PantallaComedor(seleccionAlimentos));
         pantallas.put("pago",
                 new PantallaPago(seleccionAlimentos, new PagarTarjeta()));
-        pantallas.put("mesas",
-                new PantallaMesasDisponibles(new ReservarMesa()));
+        pantallas.put("mesas", mesasDisponibles);
         pantallas.put("ticket", new PantallaTicket());
         pantallas.put("cajero", cajero);
         pantallas.put("administrador", estadisticas);
@@ -101,6 +102,8 @@ public final class CafeteriaApp {
                 } else if ("ingreso-usuario".equals(destino)) {
                     usuarioAutenticado[0] = true;
                     rolAutenticado[0] = "usuario";
+                    mesasDisponibles.setCredencialUsuario(
+                            login.getCredencialAutenticada());
                     tarjetas.show(contenedor, "menu");
                 } else if ("menu".equals(destino)) {
                     if ("administrador".equals(rolAutenticado[0])) {

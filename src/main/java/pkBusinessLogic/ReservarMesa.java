@@ -1,6 +1,5 @@
 package pkBusinessLogic;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -9,11 +8,13 @@ import pkDataAccess.pkDAO.ReservaDAO;
 import pkDataAccess.pkDTO.Mesa;
 import pkDataAccess.pkDTO.Reserva;
 import pkDataAccess.pkDTO.UsuarioPoliComedor;
+import pkDataAccess.pkDAO.UsuarioPoliComedorDAO;
 
 public class ReservarMesa {
 
     private final ReservaDAO reservaDAO;
     private final MesaDAO mesaDAO;
+    private final UsuarioPoliComedorDAO usuarioDAO;
 
     public ReservarMesa() {
 
@@ -22,6 +23,8 @@ public class ReservarMesa {
 
         this.mesaDAO =
                 new MesaDAO();
+        this.usuarioDAO =
+                new UsuarioPoliComedorDAO();
     }
 
     public boolean crearReserva(
@@ -118,11 +121,60 @@ public class ReservarMesa {
 
     public List<String> listarMesasParaVista() {
         return mesaDAO.leerTodos().stream()
+                .filter(mesa -> !mesa.isReservada())
                 .map(mesa -> "%d | Mesa %d — %s".formatted(
                         mesa.getIdMesa(),
                         mesa.getIdMesa(),
                         mesa.isReservada() ? "reservada" : "disponible"))
                 .toList();
+    }
+
+    public boolean reservarMesa(
+            String mesaEnVista,
+            String credencialUsuario,
+            String franjaHoraria) {
+        if (mesaEnVista == null
+                || credencialUsuario == null
+                || credencialUsuario.isBlank()
+                || franjaHoraria == null
+                || franjaHoraria.isBlank()) {
+            return false;
+        }
+
+        int separador = mesaEnVista.indexOf(" | ");
+        if (separador <= 0) {
+            return false;
+        }
+
+        final int idMesa;
+        try {
+            idMesa = Integer.parseInt(
+                    mesaEnVista.substring(0, separador));
+        } catch (NumberFormatException error) {
+            return false;
+        }
+
+        UsuarioPoliComedor usuario =
+                usuarioDAO.buscarPorId(
+                        credencialUsuario.trim());
+        if (usuario == null) {
+            try {
+                usuario = usuarioDAO.buscarPorCodigoUnico(
+                        credencialUsuario.trim());
+            } catch (IllegalArgumentException ignored) {
+                usuario = null;
+            }
+        }
+        if (usuario == null) {
+            usuario = usuarioDAO.buscarPorCedula(
+                    credencialUsuario.trim());
+        }
+        if (usuario == null) {
+            return false;
+        }
+
+        Mesa mesa = mesaDAO.buscarPorId(idMesa);
+        return crearReserva(mesa, usuario, franjaHoraria.trim());
     }
 
     private boolean marcarMesaReservada(

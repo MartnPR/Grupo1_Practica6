@@ -34,8 +34,9 @@ public class ReservaDAO implements IReservaDataHelper {
     public void agregar(Reserva object) {
         execute("INSERT INTO RESERVA "
                 + "(IDRESERVA, FECHA_CREACION, FRANJA_HORARIA, \"idUsuario\", \"idMesa\") "
-                + "VALUES (?, ?, ?, ?, ?)",
-                object.getIdReserva(), date(object.getFechaCreacion()),
+                + "SELECT COALESCE(MAX(IDRESERVA), 0) + 1, ?, ?, ?, ? "
+                + "FROM RESERVA",
+                date(object.getFechaCreacion()),
                 object.getFranjaHoraria(),
                 object.getUsuario() == null ? null : object.getUsuario().getIdUsuario(),
                 object.getMesa() == null ? null : object.getMesa().getIdMesa());
@@ -90,7 +91,9 @@ public class ReservaDAO implements IReservaDataHelper {
     @Override
     public List<Reserva> buscarPorFranjaHoraria(String franja) {
         return query("SELECT " + COLUMNS
-                + " FROM RESERVA r WHERE r.FRANJA_HORARIA = ?", franja);
+                + " FROM RESERVA r "
+                + "WHERE LOWER(TRIM(r.FRANJA_HORARIA)) = LOWER(TRIM(?))",
+                franja);
     }
 
     @Override

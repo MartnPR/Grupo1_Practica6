@@ -9,7 +9,6 @@ public class Reporte {
     private boolean graficos;
     private String descripcion;
     private double totalVentas;
-    private int totalPedidos;
     private int totalReservas;
     public Reporte() {
     }
@@ -68,14 +67,6 @@ public class Reporte {
         this.totalVentas = totalVentas;
     }
 
-    public int getTotalPedidos() {
-        return totalPedidos;
-    }
-
-    public void setTotalPedidos(int totalPedidos) {
-        this.totalPedidos = totalPedidos;
-    }
-
     public int getTotalReservas() {
         return totalReservas;
     }
@@ -83,6 +74,7 @@ public class Reporte {
     public void setTotalReservas(int totalReservas) {
         this.totalReservas = totalReservas;
     }
+
 
     @Override
     public String toString() {
