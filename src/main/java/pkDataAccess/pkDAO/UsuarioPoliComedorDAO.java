@@ -12,11 +12,11 @@ import pkDataAccess.pkIDataAccess.IUsuarioDataHelper;
 public class UsuarioPoliComedorDAO implements IUsuarioDataHelper {
 
     private final ConnectionDB connectionDB;
-    private static final String COLUMNS = "u.ID_USUARIO, u.NOMBRE, u.APELLIDO, "
+    private static final String COLUMNS = "u.IDUSUARIO, u.NOMBRE, u.APELLIDO, "
             + "u.CONTRASENIA, u.TIPO_USUARIO, e.CODIGO_UNICO, p.CEDULA";
     private static final String FROM = " FROM USUARIO u "
-            + "LEFT JOIN ESTUDIANTE e ON e.ID_USUARIO = u.ID_USUARIO "
-            + "LEFT JOIN PROFESOR p ON p.ID_USUARIO = u.ID_USUARIO";
+            + "LEFT JOIN ESTUDIANTE e ON e.IDUSUARIO = u.IDUSUARIO "
+            + "LEFT JOIN PROFESOR p ON p.IDUSUARIO = u.IDUSUARIO";
 
     /** Crea un DAO usando la configuración predeterminada de Food4All. */
     public UsuarioPoliComedorDAO() {
@@ -39,7 +39,7 @@ public class UsuarioPoliComedorDAO implements IUsuarioDataHelper {
     @Override
     public void agregar(UsuarioPoliComedor object) {
         execute("INSERT INTO USUARIO "
-                + "(ID_USUARIO, NOMBRE, APELLIDO, CONTRASENIA, TIPO_USUARIO) "
+                + "(IDUSUARIO, NOMBRE, APELLIDO, CONTRASENIA, TIPO_USUARIO) "
                 + "VALUES (?, ?, ?, ?, ?)",
                 object.getIdUsuario(), object.getNombre(), object.getApellido(),
                 object.getContrasenia(), object.getTipo());
@@ -50,7 +50,7 @@ public class UsuarioPoliComedorDAO implements IUsuarioDataHelper {
     public UsuarioPoliComedor buscarPorId(String id) {
         List<UsuarioPoliComedor> result = query(
                 "SELECT " + COLUMNS + FROM
-                        + " WHERE u.ID_USUARIO = ?",
+                        + " WHERE u.IDUSUARIO = ?",
                 id);
         return result.isEmpty() ? null : result.get(0);
     }
@@ -59,14 +59,14 @@ public class UsuarioPoliComedorDAO implements IUsuarioDataHelper {
     @Override
     public List<UsuarioPoliComedor> leerTodos() {
         return query("SELECT " + COLUMNS + FROM
-                + " ORDER BY u.ID_USUARIO", null);
+                + " ORDER BY u.IDUSUARIO", null);
     }
 
     /** Actualiza los datos comunes de un usuario. */
     @Override
     public boolean actualizar(UsuarioPoliComedor object) {
         return execute("UPDATE USUARIO SET NOMBRE = ?, APELLIDO = ?, "
-                + "CONTRASENIA = ?, TIPO_USUARIO = ? WHERE ID_USUARIO = ?",
+                + "CONTRASENIA = ?, TIPO_USUARIO = ? WHERE IDUSUARIO = ?",
                 object.getNombre(), object.getApellido(), object.getContrasenia(),
                 object.getTipo(), object.getIdUsuario()) > 0;
     }
@@ -76,7 +76,7 @@ public class UsuarioPoliComedorDAO implements IUsuarioDataHelper {
     public UsuarioPoliComedor eliminar(String id) {
         UsuarioPoliComedor result = buscarPorId(id);
         if (result != null) {
-            execute("DELETE FROM USUARIO WHERE ID_USUARIO = ?", id);
+            execute("DELETE FROM USUARIO WHERE IDUSUARIO = ?", id);
         }
         return result;
     }
@@ -136,7 +136,7 @@ public class UsuarioPoliComedorDAO implements IUsuarioDataHelper {
         try {
             result = connectionDB.query(sql, rows -> {
                     UsuarioPoliComedor item = new UsuarioPoliComedor();
-                    item.setIdUsuario(rows.getString("ID_USUARIO"));
+                    item.setIdUsuario(rows.getString("IDUSUARIO"));
                     item.setNombre(rows.getString("NOMBRE"));
                     item.setApellido(rows.getString("APELLIDO"));
                     item.setContrasenia(rows.getString("CONTRASENIA"));

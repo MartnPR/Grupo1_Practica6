@@ -173,6 +173,9 @@ public final class ConnectionDB {
 
     private void setParameters(PreparedStatement statement, Object[] parameters)
                 throws SQLException {
+            if (parameters.length == 1 && parameters[0] == null) {
+                return;
+            }
             for (int i = 0; i < parameters.length; i++) {
                 statement.setObject(i + 1, parameters[i]);
             }

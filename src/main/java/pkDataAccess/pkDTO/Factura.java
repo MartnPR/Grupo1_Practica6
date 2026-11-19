@@ -6,6 +6,17 @@ import java.util.List;
 
 public class Factura {
     private String idFactura;
+
+    /**
+     * 1. Nombre: idUsuario.
+     * 2. Cinco razones para incluirlo: representa la columna idUsuario del DDL;
+     * permite insertar la FK; permite actualizar la FK; permite leer la FK;
+     * mantiene la correspondencia completa del DTO con FACTURA.
+     * 3. Cinco razones por las que no puede omitirse: el DDL lo define;
+     * omitirlo pierde la relación con USUARIO; INSERT quedaría incompleto;
+     * UPDATE no podría modificar la relación; SELECT no podría reconstruirla.
+     */
+    private String idUsuario;
     private Date fecha;
     private List<LineaFactura> lineaFactura;
     
@@ -33,6 +44,14 @@ public class Factura {
 
     public void setIdFactura(String idFactura) {
         this.idFactura = idFactura;
+    }
+
+    public String getIdUsuario() {
+        return idUsuario;
+    }
+
+    public void setIdUsuario(String idUsuario) {
+        this.idUsuario = idUsuario;
     }
 
     public Date getFecha() {

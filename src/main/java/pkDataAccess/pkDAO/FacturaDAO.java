@@ -14,9 +14,9 @@ import pkDataAccess.pkIDataAccess.IFacturaDataHelper;
 public class FacturaDAO implements IFacturaDataHelper {
 
     private final ConnectionDB connectionDB;
-    private static final String COLUMNS = "ID_FACTURA, FECHA, NUMERO_PEDIDO, "
-            + "METODO_PAGO, TOTAL, DESCUENTO";
-    private static final String LINE_COLUMNS = "NUM_LINEA_COMPRA, CANTIDAD, "
+    private static final String COLUMNS = "IDFACTURA, FECHA, NUMEROPEDIDO, "
+            + "METODOPAGO, TOTAL, DESCUENTO, \"idUsuario\"";
+    private static final String LINE_COLUMNS = "NUMLINEAFACTURA, CANTIDAD, "
             + "PRECIO_UNITARIO, IDFACTURA";
 
     /** Crea un DAO usando la configuración predeterminada de Food4All. */
@@ -54,7 +54,7 @@ public class FacturaDAO implements IFacturaDataHelper {
     @Override
     public Factura buscarPorId(String id) {
         List<Factura> result = query(
-                "SELECT " + COLUMNS + " FROM FACTURA WHERE ID_FACTURA = ?", id);
+                "SELECT " + COLUMNS + " FROM FACTURA WHERE IDFACTURA = ?", id);
         return result.isEmpty() ? null : result.get(0);
     }
 
@@ -62,7 +62,7 @@ public class FacturaDAO implements IFacturaDataHelper {
     @Override
     public List<Factura> leerTodos() {
         return query("SELECT " + COLUMNS
-                + " FROM FACTURA ORDER BY ID_FACTURA", null);
+                + " FROM FACTURA ORDER BY IDFACTURA", null);
     }
 
     /** Actualiza una factura y reemplaza sus líneas en una transacción. */
@@ -71,11 +71,11 @@ public class FacturaDAO implements IFacturaDataHelper {
         try {
             return connectionDB.inTransaction(() -> {
             int updated;
-            updated = execute("UPDATE FACTURA SET FECHA = ?, NUMERO_PEDIDO = ?, "
-                    + "METODO_PAGO = ?, TOTAL = ?, DESCUENTO = ? "
-                    + "WHERE ID_FACTURA = ?", date(object.getFecha()),
+            updated = execute("UPDATE FACTURA SET FECHA = ?, NUMEROPEDIDO = ?, "
+                    + "METODOPAGO = ?, TOTAL = ?, DESCUENTO = ?, \"idUsuario\" = ? "
+                    + "WHERE IDFACTURA = ?", date(object.getFecha()),
                     object.getNumeroPedido(), object.getMetodoPago(),
-                    object.getTotal(), object.getDescuento(),
+                    object.getTotal(), object.getDescuento(), object.getIdUsuario(),
                     object.getIdFactura());
             if (updated > 0) {
                 deleteLines(object.getIdFactura());
@@ -96,7 +96,7 @@ public class FacturaDAO implements IFacturaDataHelper {
             try {
                 connectionDB.inTransaction(() -> {
                     deleteLines(id);
-                    execute("DELETE FROM FACTURA WHERE ID_FACTURA = ?", id);
+                    execute("DELETE FROM FACTURA WHERE IDFACTURA = ?", id);
                     return null;
                 });
             } catch (SQLException exception) {
@@ -110,7 +110,7 @@ public class FacturaDAO implements IFacturaDataHelper {
     @Override
     public List<Factura> buscarPorMetodoPago(String metodo) {
         return query("SELECT " + COLUMNS
-                + " FROM FACTURA WHERE METODO_PAGO = ?", metodo);
+                + " FROM FACTURA WHERE METODOPAGO = ?", metodo);
     }
 
     /** Busca facturas por fecha. */
@@ -136,10 +136,10 @@ public class FacturaDAO implements IFacturaDataHelper {
     }
 
     private void insertHeader(Factura object) throws SQLException {
-        execute("INSERT INTO FACTURA (" + COLUMNS + ") VALUES (?, ?, ?, ?, ?, ?)",
+        execute("INSERT INTO FACTURA (" + COLUMNS + ") VALUES (?, ?, ?, ?, ?, ?, ?)",
                 object.getIdFactura(), date(object.getFecha()),
                 object.getNumeroPedido(), object.getMetodoPago(),
-                object.getTotal(), object.getDescuento());
+                object.getTotal(), object.getDescuento(), object.getIdUsuario());
     }
 
     private void insertLines(Factura object)
@@ -166,9 +166,9 @@ public class FacturaDAO implements IFacturaDataHelper {
             throws SQLException {
         return connectionDB.query("SELECT " + LINE_COLUMNS
                 + " FROM LINEA_FACTURA WHERE IDFACTURA = ? "
-                + "ORDER BY NUM_LINEA_COMPRA", rows -> {
+                + "ORDER BY NUMLINEAFACTURA", rows -> {
                     LineaFactura line = new LineaFactura();
-                    line.setNumLineaFactura(rows.getInt("NUM_LINEA_COMPRA"));
+                    line.setNumLineaFactura(rows.getInt("NUMLINEAFACTURA"));
                     line.setCantidad(rows.getInt("CANTIDAD"));
                     line.setPrecioUnitario(rows.getDouble("PRECIO_UNITARIO"));
                     line.setIdFactura(rows.getString("IDFACTURA"));
@@ -189,12 +189,13 @@ public class FacturaDAO implements IFacturaDataHelper {
         try {
             result = connectionDB.query(sql, rows -> {
                 Factura item = new Factura();
-                item.setIdFactura(rows.getString("ID_FACTURA"));
+                item.setIdFactura(rows.getString("IDFACTURA"));
                 item.setFecha(rows.getDate("FECHA"));
-                item.setNumeroPedido(rows.getInt("NUMERO_PEDIDO"));
-                item.setMetodoPago(rows.getString("METODO_PAGO"));
+                item.setNumeroPedido(rows.getInt("NUMEROPEDIDO"));
+                item.setMetodoPago(rows.getString("METODOPAGO"));
                 item.setTotal(rows.getDouble("TOTAL"));
                 item.setDescuento(rows.getDouble("DESCUENTO"));
+                item.setIdUsuario(rows.getString("idUsuario"));
                 item.setLineaFactura(queryLines(item.getIdFactura()));
                 return item;
             }, parameter);

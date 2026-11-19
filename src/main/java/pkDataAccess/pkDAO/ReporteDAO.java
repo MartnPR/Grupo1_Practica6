@@ -13,9 +13,8 @@ import pkDataAccess.pkIDataAccess.IReporteDataHelper;
 public class ReporteDAO implements IReporteDataHelper {
 
     private final ConnectionDB connectionDB;
-    private static final String COLUMNS = "ID_REPORTE, FECHA_GENERACION, "
-            + "FRANJA_HORARIA, GRAFICOS, DESCRIPCION, TOTAL_VENTAS, "
-            + "TOTAL_PEDIDOS, TOTAL_RESERVAS";
+    private static final String COLUMNS = "IDREPORTE, FECHA_GENERACION, "
+            + "FRANJA_HORARIA, GRAFICOS, DESCRIPCION";
 
     /** Crea un DAO usando la configuración predeterminada de Food4All. */
     public ReporteDAO() {
@@ -37,20 +36,18 @@ public class ReporteDAO implements IReporteDataHelper {
     /** Inserta un reporte en la base de datos. */
     @Override
     public void agregar(Reporte object) {
-        execute("INSERT INTO REPORTE (ID_REPORTE, FECHA_GENERACION, "
-                + "FRANJA_HORARIA, GRAFICOS, DESCRIPCION, TOTAL_VENTAS, "
-                + "TOTAL_PEDIDOS, TOTAL_RESERVAS) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        execute("INSERT INTO REPORTE (IDREPORTE, FECHA_GENERACION, "
+                + "FRANJA_HORARIA, GRAFICOS, DESCRIPCION) VALUES (?, ?, ?, ?, ?)",
                 object.getIdReporte(), date(object.getFechaGeneracion()),
                 object.getFranjaHoraria(), object.isGraficos(),
-                object.getDescripcion(), object.getTotalVentas(),
-                object.getTotalPedidos(), object.getTotalReservas());
+                object.getDescripcion());
     }
 
     /** Busca un reporte por su identificador. */
     @Override
     public Reporte buscarPorId(String id) {
         List<Reporte> result = query(
-                "SELECT " + COLUMNS + " FROM REPORTE WHERE ID_REPORTE = ?", id);
+                "SELECT " + COLUMNS + " FROM REPORTE WHERE IDREPORTE = ?", id);
         return result.isEmpty() ? null : result.get(0);
     }
 
@@ -58,20 +55,17 @@ public class ReporteDAO implements IReporteDataHelper {
     @Override
     public List<Reporte> leerTodos() {
         return query("SELECT " + COLUMNS
-                + " FROM REPORTE ORDER BY ID_REPORTE", null);
+                + " FROM REPORTE ORDER BY IDREPORTE", null);
     }
 
     /** Actualiza los datos de un reporte. */
     @Override
     public boolean actualizar(Reporte object) {
         return execute("UPDATE REPORTE SET FECHA_GENERACION = ?, "
-                + "FRANJA_HORARIA = ?, GRAFICOS = ?, DESCRIPCION = ?, "
-                + "TOTAL_VENTAS = ?, TOTAL_PEDIDOS = ?, TOTAL_RESERVAS = ? "
-                + "WHERE ID_REPORTE = ?",
+                + "FRANJA_HORARIA = ?, GRAFICOS = ?, DESCRIPCION = ? "
+                + "WHERE IDREPORTE = ?",
                 date(object.getFechaGeneracion()), object.getFranjaHoraria(),
                 object.isGraficos(), object.getDescripcion(),
-                object.getTotalVentas(), object.getTotalPedidos(),
-                object.getTotalReservas(),
                 object.getIdReporte()) > 0;
     }
 
@@ -80,7 +74,7 @@ public class ReporteDAO implements IReporteDataHelper {
     public Reporte eliminar(String id) {
         Reporte result = buscarPorId(id);
         if (result != null) {
-            execute("DELETE FROM REPORTE WHERE ID_REPORTE = ?", id);
+            execute("DELETE FROM REPORTE WHERE IDREPORTE = ?", id);
         }
         return result;
     }
@@ -124,14 +118,11 @@ public class ReporteDAO implements IReporteDataHelper {
         try {
             result = connectionDB.query(sql, rows -> {
                     Reporte item = new Reporte();
-                    item.setIdReporte(rows.getString("ID_REPORTE"));
+                    item.setIdReporte(rows.getString("IDREPORTE"));
                     item.setFechaGeneracion(rows.getDate("FECHA_GENERACION"));
                     item.setFranjaHoraria(rows.getString("FRANJA_HORARIA"));
                     item.setGraficos(rows.getBoolean("GRAFICOS"));
                     item.setDescripcion(rows.getString("DESCRIPCION"));
-                    item.setTotalVentas(rows.getDouble("TOTAL_VENTAS"));
-                    item.setTotalPedidos(rows.getInt("TOTAL_PEDIDOS"));
-                    item.setTotalReservas(rows.getInt("TOTAL_RESERVAS"));
                     return item;
                 }, parameter);
         } catch (SQLException exception) {
