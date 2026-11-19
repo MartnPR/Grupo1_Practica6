@@ -87,7 +87,6 @@ public class GestorTicket {
 
         ticket.setFechaGeneracion(new Date());
         ticket.setValido(true);
-        ticket.setFactura(factura);
 
         BitMatrix codigoQR =
                 generarMatrizQR(ticket, factura);

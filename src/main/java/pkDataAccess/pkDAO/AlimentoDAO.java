@@ -1,8 +1,5 @@
 package pkDataAccess.pkDAO;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,20 +43,9 @@ public class AlimentoDAO implements IAlimentoDataHelper {
                 + "(ID_ALIMENTO, NOMBRE, TIPO, DESCRIPCION, CANTIDAD_EN_STOCK, PRECIO_UNITARIO) "
                 + "VALUES (?, ?, ?, ?, ?, ?)";
 
-        try (Connection connection = connectionDB.connect();
-                PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setInt(1, object.getIdAlimento());
-            statement.setString(2, object.getNombre());
-            statement.setString(3, object.getTipo());
-            statement.setString(4, object.getDescripcion());
-            statement.setInt(5, object.getCantidadEnStock());
-            statement.setDouble(6, object.getPrecioUnitario());
-            statement.executeUpdate();
-        } catch (SQLException exception) {
-            throw error(sql, exception);
-        } finally {
-            closeConnection();
-        }
+        execute(sql, object.getIdAlimento(), object.getNombre(), object.getTipo(),
+                object.getDescripcion(), object.getCantidadEnStock(),
+                object.getPrecioUnitario());
     }
 
     /**
@@ -100,20 +86,9 @@ public class AlimentoDAO implements IAlimentoDataHelper {
         String sql = "UPDATE ALIMENTO SET NOMBRE = ?, TIPO = ?, DESCRIPCION = ?, "
                 + "CANTIDAD_EN_STOCK = ?, PRECIO_UNITARIO = ? WHERE ID_ALIMENTO = ?";
 
-        try (Connection connection = connectionDB.connect();
-                PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, object.getNombre());
-            statement.setString(2, object.getTipo());
-            statement.setString(3, object.getDescripcion());
-            statement.setInt(4, object.getCantidadEnStock());
-            statement.setDouble(5, object.getPrecioUnitario());
-            statement.setInt(6, object.getIdAlimento());
-            return statement.executeUpdate() > 0;
-        } catch (SQLException exception) {
-            throw error(sql, exception);
-        } finally {
-            closeConnection();
-        }
+        return execute(sql, object.getNombre(), object.getTipo(),
+                object.getDescripcion(), object.getCantidadEnStock(),
+                object.getPrecioUnitario(), object.getIdAlimento()) > 0;
     }
 
     /**
@@ -130,16 +105,8 @@ public class AlimentoDAO implements IAlimentoDataHelper {
         }
 
         String sql = "DELETE FROM ALIMENTO WHERE ID_ALIMENTO = ?";
-        try (Connection connection = connectionDB.connect();
-                PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setInt(1, id);
-            statement.executeUpdate();
-            return result;
-        } catch (SQLException exception) {
-            throw error(sql, exception);
-        } finally {
-            closeConnection();
-        }
+        execute(sql, id);
+        return result;
     }
 
     /**
@@ -192,28 +159,19 @@ public class AlimentoDAO implements IAlimentoDataHelper {
     private List<Alimento> query(String sql, Object parameter) {
         List<Alimento> result = new ArrayList<>();
 
-        try (Connection connection = connectionDB.connect();
-                PreparedStatement statement = connection.prepareStatement(sql)) {
-            if (parameter != null) {
-                statement.setObject(1, parameter);
-            }
-
-            try (ResultSet rows = statement.executeQuery()) {
-                while (rows.next()) {
-                    Alimento item = new Alimento();
-                    item.setIdAlimento(rows.getInt("ID_ALIMENTO"));
-                    item.setNombre(rows.getString("NOMBRE"));
-                    item.setTipo(rows.getString("TIPO"));
-                    item.setDescripcion(rows.getString("DESCRIPCION"));
-                    item.setCantidadEnStock(rows.getInt("CANTIDAD_EN_STOCK"));
-                    item.setPrecioUnitario(rows.getDouble("PRECIO_UNITARIO"));
-                    result.add(item);
-                }
-            }
+        try {
+            result = connectionDB.query(sql, rows -> {
+                Alimento item = new Alimento();
+                item.setIdAlimento(rows.getInt("ID_ALIMENTO"));
+                item.setNombre(rows.getString("NOMBRE"));
+                item.setTipo(rows.getString("TIPO"));
+                item.setDescripcion(rows.getString("DESCRIPCION"));
+                item.setCantidadEnStock(rows.getInt("CANTIDAD_EN_STOCK"));
+                item.setPrecioUnitario(rows.getDouble("PRECIO_UNITARIO"));
+                return item;
+            }, parameter);
         } catch (SQLException exception) {
             throw error(sql, exception);
-        } finally {
-            closeConnection();
         }
         return result;
     }
@@ -225,25 +183,18 @@ public class AlimentoDAO implements IAlimentoDataHelper {
      * @return valor agregado
      */
     private int aggregate(String sql) {
-        try (Connection connection = connectionDB.connect();
-                PreparedStatement statement = connection.prepareStatement(sql);
-                ResultSet rows = statement.executeQuery()) {
-            return rows.next() ? rows.getInt(1) : 0;
+        try {
+            return connectionDB.aggregate(sql);
         } catch (SQLException exception) {
             throw error(sql, exception);
-        } finally {
-            closeConnection();
         }
     }
 
-    /**
-     * Cierra la conexión administrada por el DAO.
-     */
-    private void closeConnection() {
+    private int execute(String sql, Object... parameters) {
         try {
-            connectionDB.close();
+            return connectionDB.executeUpdate(sql, parameters);
         } catch (SQLException exception) {
-            throw error("close connection", exception);
+            throw error(sql, exception);
         }
     }
 

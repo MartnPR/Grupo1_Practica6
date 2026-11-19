@@ -1,8 +1,5 @@
 package pkDataAccess.pkDAO;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -125,16 +122,10 @@ public class MesaDAO implements IMesaDataHelper {
      * @return cantidad de filas afectadas
      */
     private int execute(String sql, Object... parameters) {
-        try (Connection connection = connectionDB.connect();
-                PreparedStatement statement = connection.prepareStatement(sql)) {
-            for (int i = 0; i < parameters.length; i++) {
-                statement.setObject(i + 1, parameters[i]);
-            }
-            return statement.executeUpdate();
+        try {
+            return connectionDB.executeUpdate(sql, parameters);
         } catch (SQLException exception) {
             throw error(sql, exception);
-        } finally {
-            closeConnection();
         }
     }
 
@@ -148,23 +139,12 @@ public class MesaDAO implements IMesaDataHelper {
     private List<Mesa> query(String sql, Object parameter) {
         List<Mesa> result = new ArrayList<>();
 
-        try (Connection connection = connectionDB.connect();
-                PreparedStatement statement = connection.prepareStatement(sql)) {
-            if (parameter != null) {
-                statement.setObject(1, parameter);
-            }
-
-            try (ResultSet rows = statement.executeQuery()) {
-                while (rows.next()) {
-                    result.add(new Mesa(
-                            rows.getInt("ID_MESA"),
-                            rows.getBoolean("RESERVADA")));
-                }
-            }
+        try {
+            result = connectionDB.query(sql, rows -> new Mesa(
+                    rows.getInt("ID_MESA"),
+                    rows.getBoolean("RESERVADA")), parameter);
         } catch (SQLException exception) {
             throw error(sql, exception);
-        } finally {
-            closeConnection();
         }
         return result;
     }
@@ -176,25 +156,10 @@ public class MesaDAO implements IMesaDataHelper {
      * @return valor agregado
      */
     private int aggregate(String sql) {
-        try (Connection connection = connectionDB.connect();
-                PreparedStatement statement = connection.prepareStatement(sql);
-                ResultSet rows = statement.executeQuery()) {
-            return rows.next() ? rows.getInt(1) : 0;
+        try {
+            return connectionDB.aggregate(sql);
         } catch (SQLException exception) {
             throw error(sql, exception);
-        } finally {
-            closeConnection();
-        }
-    }
-
-    /**
-     * Cierra la conexión administrada por el DAO.
-     */
-    private void closeConnection() {
-        try {
-            connectionDB.close();
-        } catch (SQLException exception) {
-            throw error("close connection", exception);
         }
     }
 
